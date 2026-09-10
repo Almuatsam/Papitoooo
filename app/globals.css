@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ink: 220 9% 8%;
+    --paper: 0 0% 100%;
+    --accent: 222 100% 57%;
+    --accent-foreground: 0 0% 100%;
+    --pop: 16 100% 56%;
+    --muted: 220 9% 46%;
+    --line: 220 13% 88%;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    margin: 0;
+    background: hsl(var(--paper));
+    color: hsl(var(--ink));
+    font-family: var(--font-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Touch behaviour: never zoom-on-double-tap, honour safe areas. */
+  @media (max-width: 768px) {
+    body {
+      touch-action: manipulation;
+    }
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+}
+
+@layer components {
+  .app-shell {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: max(env(safe-area-inset-top), 0px) 0 max(env(safe-area-inset-bottom), 0px);
+  }
+
+  /* Hairline scrollbar hiding for the filter carousel. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
