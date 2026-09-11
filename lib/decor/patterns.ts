@@ -11,7 +11,7 @@ export type PatternId =
   | "stripes-v"
   | "stripes-diagonal"
   | "checker"
-  | "dots"
+  | "glitter-flakes"
   | "stars"
   | "hearts"
   | "waves"
@@ -36,6 +36,24 @@ function heart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number)
   ctx.moveTo(cx, cy + s * 0.32);
   ctx.bezierCurveTo(cx - s, cy - s * 0.55, cx - s * 0.4, cy - s * 1.15, cx, cy - s * 0.45);
   ctx.bezierCurveTo(cx + s * 0.4, cy - s * 1.15, cx + s, cy - s * 0.55, cx, cy + s * 0.32);
+  ctx.closePath();
+  ctx.fill();
+}
+
+/** One irregular, randomly-rotated glitter flake — never a circle, so the
+ * tile reads as sparkly grit rather than polka dots. */
+function flake(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  const sides = 5 + Math.floor(Math.random() * 2);
+  const rotation = Math.random() * Math.PI * 2;
+  ctx.beginPath();
+  for (let i = 0; i < sides; i++) {
+    const angle = rotation + (Math.PI * 2 * i) / sides;
+    const jitter = 0.55 + Math.random() * 0.55;
+    const px = cx + Math.cos(angle) * r * jitter;
+    const py = cy + Math.sin(angle) * r * jitter;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
   ctx.closePath();
   ctx.fill();
 }
@@ -100,15 +118,47 @@ const TILES: Record<PatternId, TileSpec> = {
       ctx.fillRect(half, half, half, half);
     },
   },
-  dots: {
-    size: 22,
+  "glitter-flakes": {
+    // Dense sparkly glitter: irregular flakes at varied sizes/opacities plus
+    // a handful of brighter white "glints" scattered on top, on a solid
+    // colour base — not evenly-spaced dots. Bigger tile than the other
+    // patterns so a good amount of grit fits before it repeats.
+    size: 64,
     draw: (ctx, size, colorA, colorB) => {
       ctx.fillStyle = colorA;
       ctx.fillRect(0, 0, size, size);
-      ctx.fillStyle = colorB;
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, size * 0.16, 0, Math.PI * 2);
-      ctx.fill();
+
+      // Bulk of the glitter: small irregular flakes in the accent colour.
+      for (let i = 0; i < 46; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = 0.8 + Math.random() * 2.2;
+        ctx.globalAlpha = 0.45 + Math.random() * 0.5;
+        ctx.fillStyle = colorB;
+        flake(ctx, x, y, r);
+      }
+
+      // Fine white specular sparkle, scattered independently.
+      for (let i = 0; i < 16; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = 0.5 + Math.random() * 1.1;
+        ctx.globalAlpha = 0.7 + Math.random() * 0.3;
+        ctx.fillStyle = "#ffffff";
+        flake(ctx, x, y, r);
+      }
+
+      // A few larger bright glints for the "catches the light" highlight.
+      for (let i = 0; i < 6; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = 1.8 + Math.random() * 1.6;
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = "#ffffff";
+        flake(ctx, x, y, r);
+      }
+
+      ctx.globalAlpha = 1;
     },
   },
   stars: {
