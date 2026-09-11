@@ -38,6 +38,22 @@ function roundRectPath(ctx: CanvasRenderingContext2D, w: number, h: number, r: n
   ctx.closePath();
 }
 
+/** Solid placeholder used if a captured frame fails to decode, so one bad
+ * photo degrades gracefully instead of failing the whole strip. */
+function placeholderFrame(w: number, h: number, radius: number, color: string): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    if (radius > 0) roundRectPath(ctx, w, h, radius);
+    else ctx.rect(0, 0, w, h);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+  return canvas;
+}
+
 /** Cover-crops, rounds corners, and bakes the selected filter into one frame. */
 async function prepFrame(
   src: string,
@@ -46,26 +62,44 @@ async function prepFrame(
   radius: number,
   css: string,
 ): Promise<HTMLCanvasElement> {
-  const img = await loadHtmlImage(src);
+  let img: HTMLImageElement;
+  try {
+    img = await loadHtmlImage(src);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[strip-renderer] a captured frame failed to decode; using a placeholder", err);
+    return placeholderFrame(w, h, radius, "#d9d9d9");
+  }
+
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("2D context unavailable");
+  if (!ctx) return placeholderFrame(w, h, radius, "#d9d9d9");
 
   if (radius > 0) {
     roundRectPath(ctx, w, h, radius);
     ctx.clip();
   }
 
-  const scale = Math.max(w / img.width, h / img.height);
-  const dw = img.width * scale;
-  const dh = img.height * scale;
+  const naturalW = img.naturalWidth || img.width;
+  const naturalH = img.naturalHeight || img.height;
+  if (!naturalW || !naturalH) return placeholderFrame(w, h, radius, "#d9d9d9");
+
+  const scale = Math.max(w / naturalW, h / naturalH);
+  const dw = naturalW * scale;
+  const dh = naturalH * scale;
   const dx = (w - dw) / 2;
   const dy = (h - dh) / 2;
 
   if (css && css !== "none") ctx.filter = css;
-  ctx.drawImage(img, dx, dy, dw, dh);
+  try {
+    ctx.drawImage(img, dx, dy, dw, dh);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[strip-renderer] drawImage failed for a captured frame; using a placeholder", err);
+    return placeholderFrame(w, h, radius, "#d9d9d9");
+  }
   return canvas;
 }
 
@@ -250,26 +284,33 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       fCanvas.backgroundColor = paper;
     }
 
-    if (strip.background.kind !== "solid") {
-      const bgTile = document.createElement("canvas");
-      bgTile.width = bgArea.w;
-      bgTile.height = bgArea.h;
-      const bgCtx = bgTile.getContext("2d");
-      if (bgCtx) {
-        const second = strip.background.patternUsesAccent ? colors.accent2 : colors.accent;
-        const localArea = { x: 0, y: 0, w: bgArea.w, h: bgArea.h };
-        if (strip.background.kind === "pattern" || strip.background.kind === "pattern+texture") {
-          if (strip.background.patternId) {
-            paintPattern(bgCtx, localArea, strip.background.patternId, paper, second, 1.4);
+    // Decorative background pattern/texture — never let this take the whole
+    // strip down; worst case the theme just renders on a plain paper colour.
+    try {
+      if (strip.background.kind !== "solid") {
+        const bgTile = document.createElement("canvas");
+        bgTile.width = bgArea.w;
+        bgTile.height = bgArea.h;
+        const bgCtx = bgTile.getContext("2d");
+        if (bgCtx) {
+          const second = strip.background.patternUsesAccent ? colors.accent2 : colors.accent;
+          const localArea = { x: 0, y: 0, w: bgArea.w, h: bgArea.h };
+          if (strip.background.kind === "pattern" || strip.background.kind === "pattern+texture") {
+            if (strip.background.patternId) {
+              paintPattern(bgCtx, localArea, strip.background.patternId, paper, second, 1.4);
+            }
           }
-        }
-        if (strip.background.kind === "texture" || strip.background.kind === "pattern+texture") {
-          if (strip.background.textureId) {
-            paintTexture(bgCtx, localArea, strip.background.textureId, colors.ink, colors.accent, 1.4);
+          if (strip.background.kind === "texture" || strip.background.kind === "pattern+texture") {
+            if (strip.background.textureId) {
+              paintTexture(bgCtx, localArea, strip.background.textureId, colors.ink, colors.accent, 1.4);
+            }
           }
+          fCanvas.add(new FabricImage(bgTile, { left: bgArea.x, top: bgArea.y, selectable: false, evented: false }));
         }
-        fCanvas.add(new FabricImage(bgTile, { left: bgArea.x, top: bgArea.y, selectable: false, evented: false }));
       }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[strip-renderer] background pattern/texture failed, skipping", err);
     }
 
     // ---- outer frame ---------------------------------------------------
@@ -333,29 +374,34 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     }
 
     // ---- corner decoration behind photos -------------------------------
-    if (strip.decoration === "checker-corners" || strip.decoration === "halftone-corners") {
-      const size = Math.max(30, Math.min(strip.outerPad * 1.7, 46));
-      const corners: Array<[number, number]> = [
-        [6, 6],
-        [canvasW - size - 6, 6],
-        [6, canvasH - size - 6],
-        [canvasW - size - 6, canvasH - size - 6],
-      ];
-      for (const [x, y] of corners) {
-        const tile = document.createElement("canvas");
-        tile.width = size;
-        tile.height = size;
-        const tctx = tile.getContext("2d");
-        if (!tctx) continue;
-        if (strip.decoration === "checker-corners") {
-          paintPattern(tctx, { x: 0, y: 0, w: size, h: size }, "checker", paper, colors.ink, 1.1);
-        } else {
-          tctx.fillStyle = paper;
-          tctx.fillRect(0, 0, size, size);
-          paintTexture(tctx, { x: 0, y: 0, w: size, h: size }, "halftone", colors.ink, colors.accent, 2.2);
+    try {
+      if (strip.decoration === "checker-corners" || strip.decoration === "halftone-corners") {
+        const size = Math.max(30, Math.min(strip.outerPad * 1.7, 46));
+        const corners: Array<[number, number]> = [
+          [6, 6],
+          [canvasW - size - 6, 6],
+          [6, canvasH - size - 6],
+          [canvasW - size - 6, canvasH - size - 6],
+        ];
+        for (const [x, y] of corners) {
+          const tile = document.createElement("canvas");
+          tile.width = size;
+          tile.height = size;
+          const tctx = tile.getContext("2d");
+          if (!tctx) continue;
+          if (strip.decoration === "checker-corners") {
+            paintPattern(tctx, { x: 0, y: 0, w: size, h: size }, "checker", paper, colors.ink, 1.1);
+          } else {
+            tctx.fillStyle = paper;
+            tctx.fillRect(0, 0, size, size);
+            paintTexture(tctx, { x: 0, y: 0, w: size, h: size }, "halftone", colors.ink, colors.accent, 2.2);
+          }
+          fCanvas.add(new FabricImage(tile, { left: x, top: y, selectable: false, evented: false }));
         }
-        fCanvas.add(new FabricImage(tile, { left: x, top: y, selectable: false, evented: false }));
       }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[strip-renderer] corner decoration failed, skipping", err);
     }
 
     // ---- photos ----------------------------------------------------------
@@ -477,40 +523,53 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       }
     }
 
-    // ---- caption ---------------------------------------------------------
-    const parts: string[] = [];
-    const trimmed = caption.trim();
-    if (trimmed) parts.push(trimmed);
-    if (showDate) {
-      const locale = lang === "ar" ? "ar" : undefined;
-      parts.push(new Date().toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }));
-    }
-    if (parts.length > 0) {
-      const label = parts.join("   ·   ");
-      const captionCanvas = renderCaptionBitmap(
-        canvasW,
-        strip.bottomPad,
-        label,
-        colors,
-        strip.captionFontVar,
-        strip.captionFontSize,
-        strip.captionTreatment,
-        lang,
-      );
-      fCanvas.add(
-        new FabricImage(captionCanvas, {
-          left: 0,
-          top: canvasH - strip.bottomPad,
-          selectable: false,
-          evented: false,
-        }),
-      );
+    // ---- caption -----------------------------------------------------
+    try {
+      const parts: string[] = [];
+      const trimmed = caption.trim();
+      if (trimmed) parts.push(trimmed);
+      if (showDate) {
+        const locale = lang === "ar" ? "ar" : undefined;
+        parts.push(new Date().toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }));
+      }
+      if (parts.length > 0) {
+        const label = parts.join("   ·   ");
+        const captionCanvas = renderCaptionBitmap(
+          canvasW,
+          strip.bottomPad,
+          label,
+          colors,
+          strip.captionFontVar,
+          strip.captionFontSize,
+          strip.captionTreatment,
+          lang,
+        );
+        fCanvas.add(
+          new FabricImage(captionCanvas, {
+            left: 0,
+            top: canvasH - strip.bottomPad,
+            selectable: false,
+            evented: false,
+          }),
+        );
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[strip-renderer] caption bitmap failed, skipping", err);
     }
 
     fCanvas.renderAll();
     return fCanvas.toDataURL({ format: "png", multiplier: scale, enableRetinaScaling: false });
   } finally {
-    fCanvas.dispose();
+    // Never let cleanup mask a successful render: dispose() is async in
+    // Fabric v6, and a rejection here must not replace the value/error the
+    // try block already produced.
+    try {
+      void fCanvas.dispose();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[strip-renderer] canvas dispose failed (non-fatal)", err);
+    }
   }
 }
 

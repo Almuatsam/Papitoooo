@@ -50,7 +50,10 @@ export function useStripRender(
             setRendering(false);
           }
         })
-        .catch(() => {
+        .catch((err: unknown) => {
+          // eslint-disable-next-line no-console -- surface the real cause; a
+          // blank "could not build the strip" with no trail is undebuggable.
+          console.error("[strip-preview] renderStrip failed", err);
           if (id === runId.current) {
             setError(true);
             setRendering(false);
