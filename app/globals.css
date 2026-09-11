@@ -3,14 +3,99 @@
 @tailwind utilities;
 
 @layer base {
+  /* ---- Theme tokens ---------------------------------------------------
+     Every colour is an "r g b" triplet so Tailwind can combine it with an
+     alpha value (bg-accent/40 etc). Swapping `data-theme` on <html> repaints
+     the whole app — no remount, no JS colour logic. */
   :root {
-    --ink: 220 9% 8%;
-    --paper: 0 0% 100%;
-    --accent: 222 100% 57%;
-    --accent-foreground: 0 0% 100%;
-    --pop: 16 100% 56%;
-    --muted: 220 9% 46%;
-    --line: 220 13% 88%;
+    --paper: 255 255 255;
+    --panel: 255 255 255;
+    --ink: 16 16 20;
+    --muted: 110 110 118;
+    --accent: 226 35 26;
+    --accent2: 16 16 20;
+    --line: 16 16 20;
+    --font-display: var(--font-archivo-black);
+    --font-body: var(--font-archivo);
+  }
+
+  [data-theme="classic"] {
+    --paper: 255 255 255;
+    --panel: 255 255 255;
+    --ink: 16 16 20;
+    --muted: 110 110 118;
+    --accent: 226 35 26;
+    --accent2: 16 16 20;
+    --line: 16 16 20;
+    --font-display: var(--font-archivo-black);
+    --font-body: var(--font-archivo);
+  }
+
+  [data-theme="y2k-camera"] {
+    --paper: 200 204 208;
+    --panel: 238 240 242;
+    --ink: 16 16 20;
+    --muted: 90 94 99;
+    --accent: 255 47 146;
+    --accent2: 226 35 26;
+    --line: 16 16 20;
+    --font-display: var(--font-orbitron);
+    --font-body: var(--font-space-mono);
+  }
+
+  [data-theme="glitter-scrapbook"] {
+    --paper: 251 243 227;
+    --panel: 255 255 255;
+    --ink: 43 33 24;
+    --muted: 138 116 92;
+    --accent: 255 47 146;
+    --accent2: 168 216 255;
+    --line: 216 169 58;
+    --font-display: var(--font-marker);
+    --font-body: var(--font-quicksand);
+  }
+
+  [data-theme="pop-magazine"] {
+    --paper: 255 212 0;
+    --panel: 255 255 255;
+    --ink: 16 16 20;
+    --muted: 74 66 20;
+    --accent: 226 35 26;
+    --accent2: 255 47 146;
+    --line: 16 16 20;
+    --font-display: var(--font-anton);
+    --font-body: var(--font-archivo);
+  }
+
+  [data-theme="retro-internet"] {
+    --paper: 255 255 255;
+    --panel: 227 230 233;
+    --ink: 16 16 20;
+    --muted: 90 94 99;
+    --accent: 226 35 26;
+    --accent2: 255 212 0;
+    --line: 16 16 20;
+    --font-display: var(--font-press-start);
+    --font-body: var(--font-space-mono);
+  }
+
+  [data-theme="cute-booth"] {
+    --paper: 205 234 255;
+    --panel: 255 255 255;
+    --ink: 43 39 51;
+    --muted: 96 100 128;
+    --accent: 255 95 168;
+    --accent2: 110 195 255;
+    --line: 255 95 168;
+    --font-display: var(--font-fredoka);
+    --font-body: var(--font-quicksand);
+  }
+
+  /* Arabic uses one dependable, expressive Arabic family everywhere;
+     themes still differ by weight/size/decoration, applied per component. */
+  html[lang="ar"] {
+    --font-display: var(--font-cairo);
+    --font-body: var(--font-cairo);
   }
 
   * {
@@ -25,14 +110,18 @@
 
   body {
     margin: 0;
-    background: hsl(var(--paper));
-    color: hsl(var(--ink));
-    font-family: var(--font-sans), system-ui, sans-serif;
+    background: rgb(var(--paper));
+    color: rgb(var(--ink));
+    font-family: var(--font-body), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  /* Touch behaviour: never zoom-on-double-tap, honour safe areas. */
+  html[dir="rtl"] body {
+    font-feature-settings: "kern" 1;
+  }
+
   @media (max-width: 768px) {
     body {
       touch-action: manipulation;
@@ -47,8 +136,7 @@
   h2,
   h3 {
     font-family: var(--font-display), system-ui, sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     margin: 0;
   }
 }
@@ -59,15 +147,104 @@
     display: flex;
     flex-direction: column;
     padding: max(env(safe-area-inset-top), 0px) 0 max(env(safe-area-inset-bottom), 0px);
+    position: relative;
+    overflow-x: clip;
   }
 
-  /* Hairline scrollbar hiding for the filter carousel. */
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Reusable Y2K surface treatments, theme-reactive via currentColor/tokens. */
+  .chrome-bevel {
+    background: linear-gradient(
+      180deg,
+      rgb(var(--panel)) 0%,
+      rgb(var(--panel)) 42%,
+      color-mix(in srgb, rgb(var(--panel)) 60%, white) 43%,
+      rgb(var(--panel)) 46%,
+      rgb(var(--panel)) 100%
+    );
+  }
+
+  .marquee-border {
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgb(var(--ink)) 0 10px,
+      transparent 10px 20px
+    );
+    background-size: 28px 3px;
+    background-repeat: repeat-x;
+  }
+}
+
+@layer utilities {
+  /* Per-theme button skins. Colours already re-theme automatically via the
+     bg-accent / border-ink tokens — these add shape, texture and motion so
+     `@layer utilities` (same layer Tailwind's own utility classes live in)
+     lets the higher-specificity selector below win without !important. */
+
+  /* Chrome — Y2K Digital Camera */
+  [data-theme="y2k-camera"] .btn-primary,
+  [data-theme="y2k-camera"] .btn-solid {
+    background: linear-gradient(
+      180deg,
+      rgb(var(--accent)) 0%,
+      rgb(var(--accent)) 55%,
+      color-mix(in srgb, rgb(var(--accent)) 65%, white) 56%,
+      rgb(var(--accent)) 60%,
+      rgb(var(--accent)) 100%
+    );
+    letter-spacing: 0.1em;
+  }
+
+  /* Tape — Glitter Scrapbook */
+  [data-theme="glitter-scrapbook"] .btn-primary,
+  [data-theme="glitter-scrapbook"] .btn-solid,
+  [data-theme="glitter-scrapbook"] .btn-outline {
+    border-radius: 3px;
+    transform: rotate(-1deg);
+    box-shadow: 3px 4px 0 0 rgb(var(--ink) / 0.25);
+  }
+  [data-theme="glitter-scrapbook"] .btn-primary:hover,
+  [data-theme="glitter-scrapbook"] .btn-solid:hover {
+    transform: rotate(0deg) translateY(1px);
+  }
+
+  /* Halftone — Pop Magazine */
+  [data-theme="pop-magazine"] .btn-primary,
+  [data-theme="pop-magazine"] .btn-solid {
+    border-radius: 0;
+    border-width: 4px;
+    box-shadow: 5px 5px 0 0 rgb(var(--ink));
+  }
+
+  /* Pixel — Retro Internet */
+  [data-theme="retro-internet"] .btn-primary,
+  [data-theme="retro-internet"] .btn-solid,
+  [data-theme="retro-internet"] .btn-outline {
+    border-radius: 0;
+    box-shadow:
+      3px 0 0 0 rgb(var(--ink)),
+      0 3px 0 0 rgb(var(--ink)),
+      3px 3px 0 0 rgb(var(--ink));
+  }
+
+  /* Bubble — Cute Photo Booth */
+  [data-theme="cute-booth"] .btn-primary,
+  [data-theme="cute-booth"] .btn-solid,
+  [data-theme="cute-booth"] .btn-outline,
+  [data-theme="cute-booth"] .btn-ghost {
+    border-radius: 999px;
+    box-shadow: 0 4px 0 0 rgb(var(--ink) / 0.3);
+  }
+  [data-theme="cute-booth"] .btn-primary:hover,
+  [data-theme="cute-booth"] .btn-solid:hover {
+    box-shadow: 0 2px 0 0 rgb(var(--ink) / 0.3);
   }
 }
 

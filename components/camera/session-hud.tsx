@@ -13,7 +13,7 @@ interface SessionHudProps {
 export function SessionHud({ filterLabel, captured, running }: SessionHudProps) {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-3">
-      <span className="bg-ink px-3 py-1 text-xs font-bold uppercase tracking-widest text-paper">
+      <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold uppercase tracking-widest text-paper">
         {filterLabel}
       </span>
       <div className="flex items-center gap-1.5">
@@ -27,7 +27,7 @@ export function SessionHud({ filterLabel, captured, running }: SessionHudProps) 
           />
         ))}
         {running && (
-          <span className="ml-1 bg-ink px-2 py-1 text-xs font-bold uppercase tracking-widest text-paper">
+          <span className="ms-1 rounded-full bg-ink px-2 py-1 text-xs font-bold uppercase tracking-widest text-paper">
             {Math.min(captured + 1, PHOTO_COUNT)} / {PHOTO_COUNT}
           </span>
         )}

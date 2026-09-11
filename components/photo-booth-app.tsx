@@ -1,6 +1,8 @@
 "use client";
 
 import { SessionProvider, useSession } from "@/hooks/use-session-store";
+import { LanguageProvider } from "@/hooks/use-language";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import { HomeScreen } from "@/components/screens/home-screen";
 import { CameraScreen } from "@/components/screens/camera-screen";
 import { ResultScreen } from "@/components/screens/result-screen";
@@ -19,7 +21,11 @@ function Router() {
 export function PhotoBoothApp() {
   return (
     <SessionProvider>
-      <Router />
+      <LanguageProvider>
+        <ThemeProvider>
+          <Router />
+        </ThemeProvider>
+      </LanguageProvider>
     </SessionProvider>
   );
 }

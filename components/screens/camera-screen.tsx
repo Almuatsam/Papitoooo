@@ -9,13 +9,16 @@ import { CountdownOverlay } from "@/components/camera/countdown-overlay";
 import { FlashOverlay } from "@/components/camera/flash-overlay";
 import { SessionHud } from "@/components/camera/session-hud";
 import { FilterCarousel } from "@/components/camera/filter-carousel";
+import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { useCamera } from "@/hooks/use-camera";
 import { usePhotoSession } from "@/hooks/use-photo-session";
 import { useSession } from "@/hooks/use-session-store";
-import { filterCss, getFilter } from "@/lib/filters";
+import { useLanguage } from "@/hooks/use-language";
+import { filterCss } from "@/lib/filters";
 
 export function CameraScreen() {
   const { settings, updateSettings, finishSession, goHome } = useSession();
+  const { t } = useLanguage();
   const { videoRef, status, error, start } = useCamera();
   const session = usePhotoSession({ videoRef, onComplete: finishSession });
 
@@ -28,7 +31,7 @@ export function CameraScreen() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Button
           variant="ghost"
           size="sm"
@@ -37,12 +40,15 @@ export function CameraScreen() {
             goHome();
           }}
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+          {t.camera.back}
         </Button>
-        <span className="text-sm font-bold uppercase tracking-widest text-muted">
-          4-shot strip
-        </span>
+        <div className="flex items-center gap-2">
+          <ThemeSwitcher disabled={session.isRunning} />
+          <span className="hidden text-sm font-bold uppercase tracking-widest text-muted sm:inline">
+            {t.camera.shots}
+          </span>
+        </div>
       </div>
 
       {error ? (
@@ -52,7 +58,7 @@ export function CameraScreen() {
       ) : (
         <CameraStage videoRef={videoRef} status={status} filterCss={css}>
           <SessionHud
-            filterLabel={getFilter(settings.filterId).label}
+            filterLabel={t.filters[settings.filterId]}
             captured={session.frames.length}
             running={session.isRunning}
           />
@@ -80,17 +86,12 @@ export function CameraScreen() {
       <div className="mt-auto flex justify-center pb-2">
         {session.isRunning ? (
           <Button variant="outline" size="lg" onClick={session.cancel}>
-            Stop
+            {t.camera.stop}
           </Button>
         ) : (
-          <Button
-            size="lg"
-            className="min-w-[16rem]"
-            disabled={!ready}
-            onClick={session.start}
-          >
+          <Button size="lg" className="min-w-[16rem]" disabled={!ready} onClick={session.start}>
             <Camera className="h-6 w-6" />
-            {ready ? "Start session" : "Waiting for camera"}
+            {ready ? t.camera.startSession : t.camera.waiting}
           </Button>
         )}
       </div>

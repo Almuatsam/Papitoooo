@@ -1,26 +1,36 @@
 "use client";
 
+import { useState, type RefObject } from "react";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/hooks/use-language";
+import { StickerCanvas, type StickerCanvasHandle, type SelectionBox } from "@/components/result/sticker-canvas";
+import { StickerToolbar } from "@/components/result/sticker-toolbar";
+import type { StickerInstance, StripThemeId } from "@/types";
 
 interface StripPreviewProps {
+  themeId: StripThemeId;
   url: string;
   rendering: boolean;
   error: boolean;
+  stickers: StickerInstance[];
+  onStickersChange: (next: StickerInstance[]) => void;
+  canvasRef: RefObject<StickerCanvasHandle>;
 }
 
-export function StripPreview({ url, rendering, error }: StripPreviewProps) {
-  return (
-    <div className="relative flex w-full max-w-[320px] justify-center">
-      {url && (
-        // eslint-disable-next-line @next/next/no-img-element -- canvas-generated data URL; next/image cannot optimize it
-        <img
-          key={url}
-          src={url}
-          alt="Your photo strip"
-          className="w-full animate-strip-drop border-3 border-ink shadow-[8px_8px_0_0_hsl(var(--ink))]"
-        />
-      )}
+export function StripPreview({
+  themeId,
+  url,
+  rendering,
+  error,
+  stickers,
+  onStickersChange,
+  canvasRef,
+}: StripPreviewProps) {
+  const { t } = useLanguage();
+  const [selection, setSelection] = useState<SelectionBox | null>(null);
 
+  return (
+    <div className="relative flex w-full max-w-[320px] flex-col items-center">
       {!url && !error && (
         <div className="flex aspect-[1/3] w-full items-center justify-center border-3 border-dashed border-line">
           <Loader2 className="h-8 w-8 animate-spin text-muted" />
@@ -29,12 +39,37 @@ export function StripPreview({ url, rendering, error }: StripPreviewProps) {
 
       {error && (
         <div className="flex aspect-[1/3] w-full items-center justify-center border-3 border-ink p-4 text-center text-sm font-bold uppercase text-muted">
-          Could not build the strip
+          {t.result.couldNotBuildStrip}
+        </div>
+      )}
+
+      {url && (
+        <div className="relative w-full animate-strip-drop">
+          <StickerCanvas
+            ref={canvasRef}
+            themeId={themeId}
+            backgroundUrl={url}
+            stickers={stickers}
+            onStickersChange={onStickersChange}
+            onSelectionChange={setSelection}
+          />
+          {selection && (
+            <StickerToolbar
+              box={selection}
+              onDuplicate={() => canvasRef.current?.duplicateSelected()}
+              onForward={() => canvasRef.current?.bringForwardSelected()}
+              onBackward={() => canvasRef.current?.sendBackwardSelected()}
+              onDelete={() => {
+                canvasRef.current?.deleteSelected();
+                setSelection(null);
+              }}
+            />
+          )}
         </div>
       )}
 
       {url && rendering && (
-        <div className="absolute right-2 top-2 rounded-full bg-ink p-1.5">
+        <div className="absolute end-2 top-2 rounded-full bg-ink p-1.5">
           <Loader2 className="h-4 w-4 animate-spin text-paper" />
         </div>
       )}
