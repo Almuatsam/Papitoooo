@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { THEMES } from "@/lib/themes";
+import { THEME_ICONS } from "@/lib/theme-icons";
 import { useSession } from "@/hooks/use-session-store";
 import { useLanguage } from "@/hooks/use-language";
 
@@ -17,6 +18,7 @@ export function ThemeSwitcher({ disabled = false }: { disabled?: boolean }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [panelLeft, setPanelLeft] = useState<number | null>(null);
   const active = THEMES.find((theme) => theme.id === settings.themeId) ?? THEMES[0];
+  const ActiveIcon = THEME_ICONS[active.id];
 
   // The panel can be triggered from a button near either edge of the screen
   // (Home has it start-aligned, Camera/Result have it end-aligned) — always
@@ -64,16 +66,17 @@ export function ThemeSwitcher({ disabled = false }: { disabled?: boolean }) {
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-panel px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ink disabled:opacity-40"
+        className="facet-sm inline-flex items-center gap-1.5 border-2 border-line bg-panel px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ink disabled:opacity-40"
       >
-        <Sparkles className="h-3.5 w-3.5" />
+        <Sparkles className="h-3.5 w-3.5 text-accent" />
         <span>{t.themes[active.id].label}</span>
+        <ActiveIcon className="h-3.5 w-3.5 text-accent2" />
       </button>
 
       {open && (
         <div
           ref={panelRef}
-          className="absolute top-[calc(100%+8px)] z-40 grid w-[min(88vw,320px)] grid-cols-2 gap-2 rounded-2xl border-2 border-ink bg-panel p-3 shadow-[6px_6px_0_0_rgb(var(--ink))]"
+          className="facet absolute top-[calc(100%+8px)] z-40 grid w-[min(88vw,320px)] grid-cols-2 gap-2 border-2 border-line bg-panel p-3 shadow-[0_0_24px_rgb(var(--accent)/0.35)]"
           style={{
             left: panelLeft ?? 0,
             // Keep it invisible for the one frame before we've measured and
@@ -83,6 +86,7 @@ export function ThemeSwitcher({ disabled = false }: { disabled?: boolean }) {
         >
           {THEMES.map((theme) => {
             const isActive = theme.id === settings.themeId;
+            const Icon = THEME_ICONS[theme.id];
             return (
               <button
                 key={theme.id}
@@ -92,11 +96,11 @@ export function ThemeSwitcher({ disabled = false }: { disabled?: boolean }) {
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex flex-col items-start gap-0.5 rounded-xl border-2 p-2.5 text-start transition-transform hover:-translate-y-0.5",
-                  isActive ? "border-accent bg-accent/10" : "border-ink/20",
+                  "facet-sm flex flex-col items-start gap-0.5 border-2 p-2.5 text-start transition-transform hover:-translate-y-0.5",
+                  isActive ? "border-accent bg-accent/10" : "border-line/40",
                 )}
               >
-                <span className="text-lg leading-none">{theme.emoji}</span>
+                <Icon className="h-4 w-4 text-accent" />
                 <span className="text-xs font-bold leading-tight text-ink">{t.themes[theme.id].label}</span>
                 <span className="text-[10px] leading-tight text-muted">{t.themes[theme.id].tagline}</span>
               </button>

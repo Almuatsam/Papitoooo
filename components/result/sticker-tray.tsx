@@ -40,8 +40,8 @@ export function StickerTray({ onAddSvg, onAddEmoji }: StickerTrayProps) {
               type="button"
               onClick={() => setCollection(c.id)}
               className={cn(
-                "shrink-0 rounded-full border-2 border-ink px-3 py-1 text-xs font-bold uppercase tracking-wide",
-                collection === c.id ? "bg-accent text-white" : "bg-panel text-ink hover:bg-ink/10",
+                "facet-sm shrink-0 border-2 border-line px-3 py-1 text-xs font-bold uppercase tracking-wide",
+                collection === c.id ? "bg-accent text-white" : "bg-panel text-ink hover:bg-white/10",
               )}
             >
               {t.stickerCollections[c.id]}
@@ -53,7 +53,7 @@ export function StickerTray({ onAddSvg, onAddEmoji }: StickerTrayProps) {
           <button
             type="button"
             onClick={() => setEmojiOpen(true)}
-            className="shrink-0 inline-flex items-center gap-1 rounded-full border-2 border-ink bg-panel px-3 py-1 text-xs font-bold"
+            className="facet-sm shrink-0 inline-flex items-center gap-1 border-2 border-line bg-panel px-3 py-1 text-xs font-bold"
           >
             <Smile className="h-3.5 w-3.5" />
             {t.result.addEmoji}
@@ -72,7 +72,7 @@ export function StickerTray({ onAddSvg, onAddEmoji }: StickerTrayProps) {
               }
             }}
             placeholder={t.result.emojiHint}
-            className="w-40 shrink-0 rounded-full border-2 border-ink bg-panel px-3 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+            className="facet-sm w-40 shrink-0 border-2 border-line bg-panel px-3 py-1 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
           />
         )}
       </div>
@@ -84,7 +84,7 @@ export function StickerTray({ onAddSvg, onAddEmoji }: StickerTrayProps) {
             type="button"
             title={sticker.label}
             onClick={() => onAddSvg(sticker.svg)}
-            className="flex aspect-square items-center justify-center rounded-lg border-2 border-ink/15 bg-panel p-1.5 transition-transform hover:-translate-y-0.5 hover:border-accent active:scale-95"
+            className="facet-sm flex aspect-square items-center justify-center border-2 border-line/25 bg-panel p-1.5 transition-transform hover:-translate-y-0.5 hover:border-accent active:scale-95"
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG sticker artwork, not a photo */}
             <img src={svgToDataUrl(sticker.svg)} alt={sticker.label} className="h-full w-full" />

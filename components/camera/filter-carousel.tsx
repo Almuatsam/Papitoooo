@@ -31,8 +31,8 @@ export function FilterCarousel({ value, onChange, disabled }: FilterCarouselProp
             disabled={disabled}
             onClick={() => onChange(filter.id)}
             className={cn(
-              "shrink-0 rounded-full border-2 border-ink px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-40",
-              active ? "bg-accent text-white" : "bg-panel text-ink hover:bg-ink/10",
+              "facet-sm shrink-0 border-2 border-line px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-40",
+              active ? "bg-accent text-white" : "bg-panel text-ink hover:bg-white/10",
             )}
           >
             {t.filters[filter.id]}

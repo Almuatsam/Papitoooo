@@ -15,7 +15,7 @@ export function CameraErrorPanel({
   const { t } = useLanguage();
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-5 rounded-xl border-3 border-ink bg-panel p-8 text-center">
+    <div className="facet flex h-full flex-col items-center justify-center gap-5 border-3 border-line bg-panel p-8 text-center">
       <CameraOff className="h-12 w-12" />
       <div className="space-y-2">
         <h2 className="text-2xl">{t.cameraError.title}</h2>

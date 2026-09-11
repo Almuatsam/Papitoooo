@@ -12,8 +12,6 @@ export type CaptionTreatment =
   | "pixel"
   | "bubble";
 
-export type ButtonSkin = "flat" | "chrome" | "tape" | "halftone" | "pixel" | "bubble";
-
 export interface StripBackground {
   kind: "solid" | "pattern" | "texture" | "pattern+texture";
   patternId?: PatternId;
@@ -22,12 +20,28 @@ export interface StripBackground {
   patternUsesAccent?: boolean;
 }
 
+/**
+ * Colours used when compositing this theme's strip. The app shell has one
+ * fixed chrome/neon look (app/globals.css) — these are for the STRIP OUTPUT
+ * only, so each theme's photo strip keeps its own distinct palette even
+ * though the surrounding app chrome no longer changes per theme. Plain hex,
+ * read directly by lib/strip-renderer.ts (not live CSS custom properties).
+ */
+export interface ThemeColors {
+  paper: string;
+  panel: string;
+  ink: string;
+  muted: string;
+  accent: string;
+  accent2: string;
+  line: string;
+}
+
 export interface ThemeDef {
   id: StripThemeId;
   label: string;
   tagline: string;
-  emoji: string;
-  buttonSkin: ButtonSkin;
+  colors: ThemeColors;
   strip: {
     outerPad: number;
     bottomPad: number;
@@ -51,8 +65,15 @@ export const THEMES: ThemeDef[] = [
     id: "classic",
     label: "Classic",
     tagline: "Clean & simple",
-    emoji: "🎞️",
-    buttonSkin: "flat",
+    colors: {
+      paper: "#ffffff",
+      panel: "#ffffff",
+      ink: "#101014",
+      muted: "#6e6e76",
+      accent: "#e2231a",
+      accent2: "#101014",
+      line: "#101014",
+    },
     strip: {
       outerPad: 26,
       bottomPad: 76,
@@ -72,8 +93,15 @@ export const THEMES: ThemeDef[] = [
     id: "y2k-camera",
     label: "Y2K Digital Camera",
     tagline: "Chrome & flash",
-    emoji: "📸",
-    buttonSkin: "chrome",
+    colors: {
+      paper: "#c8ccd0",
+      panel: "#eef0f2",
+      ink: "#101014",
+      muted: "#5a5e63",
+      accent: "#ff2f92",
+      accent2: "#e2231a",
+      line: "#101014",
+    },
     strip: {
       outerPad: 30,
       bottomPad: 78,
@@ -93,8 +121,15 @@ export const THEMES: ThemeDef[] = [
     id: "glitter-scrapbook",
     label: "Glitter Scrapbook",
     tagline: "Tape & sparkle",
-    emoji: "✨",
-    buttonSkin: "tape",
+    colors: {
+      paper: "#fbf3e3",
+      panel: "#ffffff",
+      ink: "#2b2118",
+      muted: "#8a745c",
+      accent: "#ff2f92",
+      accent2: "#a8d8ff",
+      line: "#d8a93a",
+    },
     strip: {
       outerPad: 32,
       bottomPad: 90,
@@ -114,8 +149,15 @@ export const THEMES: ThemeDef[] = [
     id: "pop-magazine",
     label: "Pop Magazine",
     tagline: "Bold & loud",
-    emoji: "💥",
-    buttonSkin: "halftone",
+    colors: {
+      paper: "#ffd400",
+      panel: "#ffffff",
+      ink: "#101014",
+      muted: "#4a4214",
+      accent: "#e2231a",
+      accent2: "#ff2f92",
+      line: "#101014",
+    },
     strip: {
       outerPad: 24,
       bottomPad: 88,
@@ -135,8 +177,15 @@ export const THEMES: ThemeDef[] = [
     id: "retro-internet",
     label: "Retro Internet",
     tagline: "Pixels & dial-up",
-    emoji: "👾",
-    buttonSkin: "pixel",
+    colors: {
+      paper: "#ffffff",
+      panel: "#e3e6e9",
+      ink: "#101014",
+      muted: "#5a5e63",
+      accent: "#e2231a",
+      accent2: "#ffd400",
+      line: "#101014",
+    },
     strip: {
       outerPad: 28,
       bottomPad: 72,
@@ -156,8 +205,15 @@ export const THEMES: ThemeDef[] = [
     id: "cute-booth",
     label: "Cute Photo Booth",
     tagline: "Bows & hearts",
-    emoji: "🎀",
-    buttonSkin: "bubble",
+    colors: {
+      paper: "#cdeaff",
+      panel: "#ffffff",
+      ink: "#2b2733",
+      muted: "#606480",
+      accent: "#ff5fa8",
+      accent2: "#6ec3ff",
+      line: "#ff5fa8",
+    },
     strip: {
       outerPad: 28,
       bottomPad: 92,

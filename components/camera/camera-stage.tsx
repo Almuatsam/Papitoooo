@@ -22,7 +22,7 @@ export function CameraStage({ videoRef, status, filterCss, children }: CameraSta
   const { t } = useLanguage();
 
   return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border-3 border-ink bg-ink">
+    <div className="facet neon-edge relative aspect-[4/3] w-full overflow-hidden border-3 border-line bg-black">
       <video
         ref={videoRef}
         autoPlay
@@ -33,7 +33,7 @@ export function CameraStage({ videoRef, status, filterCss, children }: CameraSta
       />
 
       {status !== "ready" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink text-paper">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black text-ink">
           <Loader2 className="h-8 w-8 animate-spin" />
           <span className="text-sm font-bold uppercase tracking-widest">
             {status === "starting" ? t.camera.wakingCamera : t.camera.cameraOff}

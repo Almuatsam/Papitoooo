@@ -12,14 +12,14 @@ interface StickerToolbarProps {
   onDelete: () => void;
 }
 
-const BTN = "flex h-8 w-8 items-center justify-center rounded-full border-2 border-ink bg-panel text-ink hover:bg-accent hover:text-white active:scale-95";
+const BTN = "facet-sm flex h-8 w-8 items-center justify-center border-2 border-line bg-panel text-ink hover:bg-accent hover:text-white active:scale-95";
 
 export function StickerToolbar({ box, onDuplicate, onForward, onBackward, onDelete }: StickerToolbarProps) {
   const { t } = useLanguage();
 
   return (
     <div
-      className="pointer-events-auto absolute z-30 flex -translate-y-full gap-1 rounded-full border-2 border-ink bg-panel p-1 shadow-[3px_3px_0_0_rgb(var(--ink))]"
+      className="facet-sm pointer-events-auto absolute z-30 flex -translate-y-full gap-1 border-2 border-accent bg-panel p-1 shadow-[0_0_16px_rgb(var(--accent)/0.6)]"
       style={{ left: box.left + box.width / 2, top: box.top - 10, transform: "translate(-50%, -100%)" }}
     >
       <button type="button" className={BTN} title={t.result.duplicate} onClick={onDuplicate}>

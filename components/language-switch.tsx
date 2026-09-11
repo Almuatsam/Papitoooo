@@ -8,10 +8,7 @@ export function LanguageSwitch({ className }: { className?: string }) {
 
   return (
     <div
-      className={cn(
-        "inline-flex overflow-hidden rounded-full border-2 border-ink bg-panel text-xs font-bold",
-        className,
-      )}
+      className={cn("facet-sm inline-flex border-2 border-line bg-panel text-xs font-bold", className)}
       role="radiogroup"
       aria-label={t.language.label}
     >
@@ -24,7 +21,7 @@ export function LanguageSwitch({ className }: { className?: string }) {
           onClick={() => setLang(code)}
           className={cn(
             "px-3 py-1.5 transition-colors",
-            lang === code ? "bg-accent text-white" : "text-ink hover:bg-ink/10",
+            lang === code ? "bg-accent text-white" : "text-ink hover:bg-white/10",
           )}
         >
           {t.language[code]}

@@ -3,96 +3,27 @@
 @tailwind utilities;
 
 @layer base {
-  /* ---- Theme tokens ---------------------------------------------------
-     Every colour is an "r g b" triplet so Tailwind can combine it with an
-     alpha value (bg-accent/40 etc). Swapping `data-theme` on <html> repaints
-     the whole app — no remount, no JS colour logic. */
+  /* ---- App chrome tokens ------------------------------------------------
+     One unified identity for the whole app: dark chrome + hot-pink neon,
+     sharp/faceted edges. Every colour is an "r g b" triplet so Tailwind can
+     combine it with an alpha value (bg-accent/40 etc).
+
+     This is deliberately NOT theme-reactive any more — the six strip themes
+     (lib/themes.ts) still each render their own distinct four-photo strip
+     (fonts, borders, patterns, colours), but the app shell around them is
+     now one consistent look regardless of which strip theme is selected. */
   :root {
-    --paper: 255 255 255;
-    --panel: 255 255 255;
-    --ink: 16 16 20;
-    --muted: 110 110 118;
-    --accent: 226 35 26;
-    --accent2: 16 16 20;
-    --line: 16 16 20;
-    --font-display: var(--font-archivo-black);
-    --font-body: var(--font-archivo);
-  }
-
-  [data-theme="classic"] {
-    --paper: 255 255 255;
-    --panel: 255 255 255;
-    --ink: 16 16 20;
-    --muted: 110 110 118;
-    --accent: 226 35 26;
-    --accent2: 16 16 20;
-    --line: 16 16 20;
-    --font-display: var(--font-archivo-black);
-    --font-body: var(--font-archivo);
-  }
-
-  [data-theme="y2k-camera"] {
-    --paper: 200 204 208;
-    --panel: 238 240 242;
-    --ink: 16 16 20;
-    --muted: 90 94 99;
-    --accent: 255 47 146;
-    --accent2: 226 35 26;
-    --line: 16 16 20;
+    --paper: 9 9 12;
+    --panel: 19 19 24;
+    --ink: 240 240 244;
+    --muted: 150 150 163;
+    --accent: 255 24 145;
+    --accent2: 255 62 214;
+    --line: 143 143 154;
     --font-display: var(--font-orbitron);
     --font-body: var(--font-space-mono);
   }
 
-  [data-theme="glitter-scrapbook"] {
-    --paper: 251 243 227;
-    --panel: 255 255 255;
-    --ink: 43 33 24;
-    --muted: 138 116 92;
-    --accent: 255 47 146;
-    --accent2: 168 216 255;
-    --line: 216 169 58;
-    --font-display: var(--font-marker);
-    --font-body: var(--font-quicksand);
-  }
-
-  [data-theme="pop-magazine"] {
-    --paper: 255 212 0;
-    --panel: 255 255 255;
-    --ink: 16 16 20;
-    --muted: 74 66 20;
-    --accent: 226 35 26;
-    --accent2: 255 47 146;
-    --line: 16 16 20;
-    --font-display: var(--font-anton);
-    --font-body: var(--font-archivo);
-  }
-
-  [data-theme="retro-internet"] {
-    --paper: 255 255 255;
-    --panel: 227 230 233;
-    --ink: 16 16 20;
-    --muted: 90 94 99;
-    --accent: 226 35 26;
-    --accent2: 255 212 0;
-    --line: 16 16 20;
-    --font-display: var(--font-press-start);
-    --font-body: var(--font-space-mono);
-  }
-
-  [data-theme="cute-booth"] {
-    --paper: 205 234 255;
-    --panel: 255 255 255;
-    --ink: 43 39 51;
-    --muted: 96 100 128;
-    --accent: 255 95 168;
-    --accent2: 110 195 255;
-    --line: 255 95 168;
-    --font-display: var(--font-fredoka);
-    --font-body: var(--font-quicksand);
-  }
-
-  /* Arabic uses one dependable, expressive Arabic family everywhere;
-     themes still differ by weight/size/decoration, applied per component. */
   html[lang="ar"] {
     --font-display: var(--font-cairo);
     --font-body: var(--font-cairo);
@@ -115,7 +46,6 @@
     font-family: var(--font-body), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   html[dir="rtl"] body {
@@ -133,11 +63,33 @@
   }
 
   h1,
-  h2,
-  h3 {
+  h2 {
     font-family: var(--font-display), system-ui, sans-serif;
     letter-spacing: -0.01em;
     margin: 0;
+    /* Glossy chrome fill: a banded silver gradient clipped to the glyphs,
+       plus a hot-pink neon glow — the reference "chrome logo" look. */
+    background-image: linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #dcdce2 20%,
+      #6f6f79 44%,
+      #fcfcfd 52%,
+      #a4a4ae 70%,
+      #f2f2f5 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.35);
+    filter: drop-shadow(0 0 8px rgb(var(--accent) / 0.85)) drop-shadow(0 0 20px rgb(var(--accent2) / 0.45));
+  }
+
+  h3 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    letter-spacing: 0.02em;
+    margin: 0;
+    color: rgb(var(--ink));
   }
 }
 
@@ -159,92 +111,67 @@
     display: none;
   }
 
-  /* Reusable Y2K surface treatments, theme-reactive via currentColor/tokens. */
+  /* Brushed-chrome surface for panels/HUD chrome. */
   .chrome-bevel {
     background: linear-gradient(
       180deg,
       rgb(var(--panel)) 0%,
       rgb(var(--panel)) 42%,
-      color-mix(in srgb, rgb(var(--panel)) 60%, white) 43%,
+      color-mix(in srgb, rgb(var(--panel)) 55%, white) 43%,
       rgb(var(--panel)) 46%,
       rgb(var(--panel)) 100%
     );
   }
 
   .marquee-border {
-    background-image: repeating-linear-gradient(
-      90deg,
-      rgb(var(--ink)) 0 10px,
-      transparent 10px 20px
-    );
+    background-image: repeating-linear-gradient(90deg, rgb(var(--accent)) 0 10px, transparent 10px 20px);
     background-size: 28px 3px;
     background-repeat: repeat-x;
+  }
+
+  /* Sharp faceted corner-cut — the app's one consistent edge treatment,
+     replacing soft rounded corners on structural chrome (buttons, panels,
+     inputs). Purely decorative circles (colour swatches, indicator dots,
+     the countdown ring) opt out via .keep-round instead of using these. */
+  .facet {
+    border-radius: 0 !important;
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+  .facet-sm {
+    border-radius: 0 !important;
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  }
+
+  /* Thin neon edge-light, for elements that want the glow without full glossy fill. */
+  .neon-edge {
+    box-shadow:
+      0 0 0 1px rgb(var(--accent) / 0.7),
+      0 0 12px rgb(var(--accent) / 0.55);
   }
 }
 
 @layer utilities {
-  /* Per-theme button skins. Colours already re-theme automatically via the
-     bg-accent / border-ink tokens — these add shape, texture and motion so
-     `@layer utilities` (same layer Tailwind's own utility classes live in)
-     lets the higher-specificity selector below win without !important. */
-
-  /* Chrome — Y2K Digital Camera */
-  [data-theme="y2k-camera"] .btn-primary,
-  [data-theme="y2k-camera"] .btn-solid {
+  /* One unified button skin (sharp/faceted, chrome base, neon-pink accent)
+     — no more per-theme variants. Same layer as Tailwind's own utilities so
+     these win over the inline rounded-* classes still on some elements. */
+  .btn {
+    border-radius: 0 !important;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .btn-primary,
+  .btn-solid {
     background: linear-gradient(
       180deg,
       rgb(var(--accent)) 0%,
-      rgb(var(--accent)) 55%,
-      color-mix(in srgb, rgb(var(--accent)) 65%, white) 56%,
-      rgb(var(--accent)) 60%,
+      rgb(var(--accent)) 52%,
+      color-mix(in srgb, rgb(var(--accent)) 60%, white) 53%,
+      rgb(var(--accent)) 58%,
       rgb(var(--accent)) 100%
     );
-    letter-spacing: 0.1em;
+    box-shadow: 0 0 16px rgb(var(--accent) / 0.55);
   }
-
-  /* Tape — Glitter Scrapbook */
-  [data-theme="glitter-scrapbook"] .btn-primary,
-  [data-theme="glitter-scrapbook"] .btn-solid,
-  [data-theme="glitter-scrapbook"] .btn-outline {
-    border-radius: 3px;
-    transform: rotate(-1deg);
-    box-shadow: 3px 4px 0 0 rgb(var(--ink) / 0.25);
-  }
-  [data-theme="glitter-scrapbook"] .btn-primary:hover,
-  [data-theme="glitter-scrapbook"] .btn-solid:hover {
-    transform: rotate(0deg) translateY(1px);
-  }
-
-  /* Halftone — Pop Magazine */
-  [data-theme="pop-magazine"] .btn-primary,
-  [data-theme="pop-magazine"] .btn-solid {
-    border-radius: 0;
-    border-width: 4px;
-    box-shadow: 5px 5px 0 0 rgb(var(--ink));
-  }
-
-  /* Pixel — Retro Internet */
-  [data-theme="retro-internet"] .btn-primary,
-  [data-theme="retro-internet"] .btn-solid,
-  [data-theme="retro-internet"] .btn-outline {
-    border-radius: 0;
-    box-shadow:
-      3px 0 0 0 rgb(var(--ink)),
-      0 3px 0 0 rgb(var(--ink)),
-      3px 3px 0 0 rgb(var(--ink));
-  }
-
-  /* Bubble — Cute Photo Booth */
-  [data-theme="cute-booth"] .btn-primary,
-  [data-theme="cute-booth"] .btn-solid,
-  [data-theme="cute-booth"] .btn-outline,
-  [data-theme="cute-booth"] .btn-ghost {
-    border-radius: 999px;
-    box-shadow: 0 4px 0 0 rgb(var(--ink) / 0.3);
-  }
-  [data-theme="cute-booth"] .btn-primary:hover,
-  [data-theme="cute-booth"] .btn-solid:hover {
-    box-shadow: 0 2px 0 0 rgb(var(--ink) / 0.3);
+  .btn-outline {
+    background: rgb(var(--panel));
   }
 }
 

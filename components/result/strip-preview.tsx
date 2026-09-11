@@ -38,13 +38,13 @@ export function StripPreview({
       )}
 
       {error && (
-        <div className="flex aspect-[1/3] w-full items-center justify-center border-3 border-ink p-4 text-center text-sm font-bold uppercase text-muted">
+        <div className="flex aspect-[1/3] w-full items-center justify-center border-3 border-line p-4 text-center text-sm font-bold uppercase text-muted">
           {t.result.couldNotBuildStrip}
         </div>
       )}
 
       {url && (
-        <div className="relative w-full animate-strip-drop">
+        <div className="neon-edge relative w-full animate-strip-drop">
           <StickerCanvas
             ref={canvasRef}
             themeId={themeId}
@@ -69,8 +69,8 @@ export function StripPreview({
       )}
 
       {url && rendering && (
-        <div className="absolute end-2 top-2 rounded-full bg-ink p-1.5">
-          <Loader2 className="h-4 w-4 animate-spin text-paper" />
+        <div className="absolute end-2 top-2 rounded-full bg-black/70 p-1.5">
+          <Loader2 className="h-4 w-4 animate-spin text-accent" />
         </div>
       )}
     </div>

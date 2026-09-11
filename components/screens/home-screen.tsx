@@ -26,7 +26,7 @@ export function HomeScreen() {
         {Array.from({ length: PHOTO_COUNT }).map((_, i) => (
           <span
             key={i}
-            className="block h-10 w-8 rounded-sm border-3 border-ink bg-panel sm:h-12 sm:w-10"
+            className="neon-edge block h-10 w-8 border-3 border-line bg-panel sm:h-12 sm:w-10"
             style={{ transform: `rotate(${(i - 1.5) * 3}deg)` }}
           />
         ))}

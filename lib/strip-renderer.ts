@@ -1,9 +1,9 @@
 import { PHOTO_WIDTH, PHOTO_HEIGHT, PHOTO_COUNT } from "@/lib/constants";
 import { filterCss } from "@/lib/filters";
-import { getTheme } from "@/lib/themes";
+import { getTheme, type ThemeColors } from "@/lib/themes";
 import { paintPattern } from "@/lib/decor/patterns";
 import { paintTexture } from "@/lib/decor/textures";
-import { readThemeColors, readCssVar } from "@/lib/decor/theme-vars";
+import { readCssVar } from "@/lib/decor/theme-vars";
 import { svgToDataUrl } from "@/lib/decor/stickers";
 import { loadHtmlImage } from "@/lib/decor/load-image";
 import type { FilterId, Frame, Lang, StickerInstance, StripThemeId } from "@/types";
@@ -128,7 +128,7 @@ function renderCaptionBitmap(
   width: number,
   height: number,
   text: string,
-  colors: ReturnType<typeof readThemeColors>,
+  colors: ThemeColors,
   fontVar: string,
   fontSize: number,
   treatment: string,
@@ -229,7 +229,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
 
   const theme = getTheme(themeId);
   const strip = theme.strip;
-  const colors = readThemeColors();
+  const colors = theme.colors;
   const css = filterCss(filterId);
   const paper = bgColor || colors.paper;
   const keyline = borderColor || colors.ink;

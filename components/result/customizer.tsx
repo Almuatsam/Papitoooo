@@ -5,6 +5,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { FilterCarousel } from "@/components/camera/filter-carousel";
 import { StickerTray } from "@/components/result/sticker-tray";
 import { THEMES, BORDER_SWATCHES, BG_SWATCHES } from "@/lib/themes";
+import { THEME_ICONS } from "@/lib/theme-icons";
 import type { SessionSettings } from "@/types";
 
 interface CustomizerProps {
@@ -44,9 +45,9 @@ function Swatches({
             aria-pressed={active}
             onClick={() => onSelect(color)}
             className={cn(
-              "h-9 w-9 rounded-full border-3 border-ink transition-transform",
-              active && "ring-4 ring-accent/40",
-              !color && "bg-[repeating-linear-gradient(45deg,#fff,#fff_4px,#ddd_4px,#ddd_8px)]",
+              "h-9 w-9 rounded-full border-3 border-line transition-transform",
+              active && "ring-4 ring-accent/50",
+              !color && "bg-[repeating-linear-gradient(45deg,#3a3a42,#3a3a42_4px,#222227_4px,#222227_8px)]",
             )}
             style={color ? { backgroundColor: color } : undefined}
           />
@@ -69,6 +70,7 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
         <div className="flex flex-wrap gap-2">
           {THEMES.map((theme) => {
             const active = theme.id === settings.themeId;
+            const Icon = THEME_ICONS[theme.id];
             return (
               <button
                 key={theme.id}
@@ -76,11 +78,12 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
                 aria-pressed={active}
                 onClick={() => onChange({ themeId: theme.id })}
                 className={cn(
-                  "rounded-full border-2 border-ink px-3 py-1.5 text-xs font-bold uppercase tracking-wide",
-                  active ? "bg-accent text-white" : "bg-panel hover:bg-ink/10",
+                  "facet-sm inline-flex items-center gap-1.5 border-2 border-line px-3 py-1.5 text-xs font-bold uppercase tracking-wide",
+                  active ? "bg-accent text-white" : "bg-panel hover:bg-white/5",
                 )}
               >
-                {theme.emoji} {t.themes[theme.id].label}
+                <Icon className="h-3.5 w-3.5" />
+                {t.themes[theme.id].label}
               </button>
             );
           })}
@@ -103,7 +106,7 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
           maxLength={28}
           placeholder={t.result.captionPlaceholder}
           onChange={(e) => onChange({ caption: e.target.value })}
-          className="w-full rounded-lg border-3 border-ink bg-panel px-3 py-2 text-base font-medium outline-none focus-visible:ring-4 focus-visible:ring-accent/40"
+          className="facet-sm w-full border-3 border-line bg-panel px-3 py-2 text-base font-medium text-ink outline-none placeholder:text-muted focus-visible:ring-4 focus-visible:ring-accent/40"
         />
       </Field>
 
@@ -113,8 +116,8 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
           aria-pressed={settings.showDate}
           onClick={() => onChange({ showDate: !settings.showDate })}
           className={cn(
-            "rounded-full border-2 border-ink px-4 py-1.5 text-sm font-bold uppercase tracking-wide",
-            settings.showDate ? "bg-accent text-white" : "bg-panel hover:bg-ink/10",
+            "facet-sm border-2 border-line px-4 py-1.5 text-sm font-bold uppercase tracking-wide",
+            settings.showDate ? "bg-accent text-white" : "bg-panel hover:bg-white/5",
           )}
         >
           {settings.showDate ? t.result.shown : t.result.hidden}
