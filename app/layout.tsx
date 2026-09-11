@@ -9,7 +9,7 @@ import {
   Anton,
   Press_Start_2P,
   Fredoka,
-  Luckiest_Guy,
+  Flavors,
   Cairo,
 } from "next/font/google";
 import "./globals.css";
@@ -48,10 +48,12 @@ const pressStart = Press_Start_2P({
   display: "swap",
 });
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-fredoka", display: "swap" });
-const luckiestGuy = Luckiest_Guy({
+// Y2K glittery-chrome hero/heading font — bold, hand-drawn poster script.
+// Only available at weight 400, and has no bold/italic variants.
+const flavors = Flavors({
   subsets: ["latin"],
   weight: "400",
-  variable: "--font-luckiest-guy",
+  variable: "--font-flavors",
   display: "swap",
 });
 const cairo = Cairo({
@@ -70,7 +72,7 @@ const fontVars = [
   anton.variable,
   pressStart.variable,
   fredoka.variable,
-  luckiestGuy.variable,
+  flavors.variable,
   cairo.variable,
 ].join(" ");
 

@@ -10,9 +10,13 @@ import { cn } from "@/lib/cn";
  * faceted corners (the `.btn` class in app/globals.css clips the corners —
  * see the `.facet` utilities). `btn-primary` / `btn-outline` / `btn-ghost` /
  * `btn-solid` are stable class hooks the CSS in app/globals.css keys off.
+ *
+ * Uses `font-body`, not `font-display` — the display font (Flavors) is a
+ * decorative hero/heading face that stops being legible at button-label
+ * sizes, so buttons stay in the readable body font.
  */
 const buttonVariants = cva(
-  "btn inline-flex items-center justify-center gap-2 whitespace-nowrap font-display font-bold uppercase tracking-wide transition-transform active:translate-y-0.5 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40",
+  "btn inline-flex items-center justify-center gap-2 whitespace-nowrap font-body font-bold uppercase tracking-wide transition-transform active:translate-y-0.5 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40",
   {
     variants: {
       variant: {
