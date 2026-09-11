@@ -5,6 +5,7 @@ import { paintPattern } from "@/lib/decor/patterns";
 import { paintTexture } from "@/lib/decor/textures";
 import { readThemeColors, readCssVar } from "@/lib/decor/theme-vars";
 import { svgToDataUrl } from "@/lib/decor/stickers";
+import { loadHtmlImage } from "@/lib/decor/load-image";
 import type { FilterId, Frame, Lang, StickerInstance, StripThemeId } from "@/types";
 
 export interface RenderStripInput {
@@ -25,16 +26,6 @@ export interface RenderStripInput {
 
 /** Alternating tilt for the "stuck onto a page" scrapbook look. Deterministic. */
 const ROTATION_JITTER = [-3, 2.4, -2.2, 3.2];
-
-function loadHtmlImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Failed to load image"));
-    img.src = src;
-  });
-}
 
 function roundRectPath(ctx: CanvasRenderingContext2D, w: number, h: number, r: number): void {
   const radius = Math.min(r, w / 2, h / 2);
@@ -462,15 +453,20 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       } else {
         try {
           const img = await loadHtmlImage(svgToDataUrl(sticker.content));
+          const width = img.naturalWidth || img.width || 64;
+          const height = img.naturalHeight || img.height || 64;
           fCanvas.add(
             new FabricImage(img, {
               left: sticker.x,
               top: sticker.y,
+              width,
+              height,
               originX: "center",
               originY: "center",
               angle: sticker.angle,
               scaleX: sticker.scale,
               scaleY: sticker.scale,
+              objectCaching: false,
               selectable: false,
               evented: false,
             }),

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { stripDimensions } from "@/lib/strip-renderer";
 import { svgToDataUrl } from "@/lib/decor/stickers";
+import { loadHtmlImage } from "@/lib/decor/load-image";
 import type { StickerInstance, StickerKind, StripThemeId } from "@/types";
 
 export interface StickerCanvasHandle {
@@ -32,16 +33,6 @@ interface StickerCanvasProps {
   stickers: StickerInstance[];
   onStickersChange: (next: StickerInstance[]) => void;
   onSelectionChange: (box: SelectionBox | null) => void;
-}
-
-function loadHtmlImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Failed to load sticker"));
-    img.src = src;
-  });
 }
 
 const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
@@ -280,19 +271,28 @@ async function addFabricSticker(canvas: import("fabric").Canvas, sticker: Sticke
     text.set({ stickerId: sticker.id, stickerKind: "emoji", stickerContent: sticker.content });
     lockUniform(text);
     canvas.add(text);
+    canvas.renderAll();
     return;
   }
 
   try {
     const img = await loadHtmlImage(svgToDataUrl(sticker.content));
+    // Fall back to the SVG's own 64x64 viewBox if the browser somehow still
+    // reports no natural size — never let a sticker render as a 0x0 object.
+    const width = img.naturalWidth || img.width || 64;
+    const height = img.naturalHeight || img.height || 64;
     const fabricImg = new FabricImage(img, {
       ...common,
+      width,
+      height,
       scaleX: sticker.scale,
       scaleY: sticker.scale,
+      objectCaching: false,
     });
     fabricImg.set({ stickerId: sticker.id, stickerKind: "svg", stickerContent: sticker.content });
     lockUniform(fabricImg);
     canvas.add(fabricImg);
+    canvas.renderAll();
   } catch {
     // skip stickers that fail to load rather than breaking the whole editor
   }

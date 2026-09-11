@@ -46,7 +46,12 @@ export const STICKER_COLLECTIONS: { id: StickerCollectionId; label: string }[] =
 ];
 
 function wrap(inner: string, vb = "0 0 64 64"): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${inner}</svg>`;
+  // Explicit width/height (not just viewBox) so the browser has an
+  // unambiguous intrinsic size the moment the image decodes — some engines
+  // fall back to a 300x150 default for viewBox-only SVGs used as <img> src,
+  // which throws off Fabric's placement/caching of the sticker.
+  const [, , w, h] = vb.split(" ");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${vb}">${inner}</svg>`;
 }
 
 function outlined(shape: string, extraAttrs = ""): string {
