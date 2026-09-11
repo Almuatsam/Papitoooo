@@ -20,8 +20,8 @@
     --accent: 255 24 145;
     --accent2: 255 62 214;
     --line: 143 143 154;
-    --font-display: var(--font-orbitron);
-    --font-body: var(--font-space-mono);
+    --font-display: var(--font-luckiest-guy);
+    --font-body: var(--font-quicksand);
   }
 
   html[lang="ar"] {
@@ -111,15 +111,14 @@
     display: none;
   }
 
-  /* Brushed-chrome surface for panels/HUD chrome. */
-  .chrome-bevel {
+  /* Vibrant glitter-gradient accent bar — smooth (no hard seam), pink to
+     magenta to white-hot, used for small corner/edge flourishes. */
+  .glitter-bar {
     background: linear-gradient(
-      180deg,
-      rgb(var(--panel)) 0%,
-      rgb(var(--panel)) 42%,
-      color-mix(in srgb, rgb(var(--panel)) 55%, white) 43%,
-      rgb(var(--panel)) 46%,
-      rgb(var(--panel)) 100%
+      90deg,
+      rgb(var(--accent)) 0%,
+      color-mix(in srgb, rgb(var(--accent2)) 70%, white) 50%,
+      rgb(var(--accent2)) 100%
     );
   }
 
@@ -160,13 +159,12 @@
   }
   .btn-primary,
   .btn-solid {
+    /* Smooth liquid-gloss gradient — no hard colour stop, no seam line. */
     background: linear-gradient(
       180deg,
-      rgb(var(--accent)) 0%,
-      rgb(var(--accent)) 52%,
-      color-mix(in srgb, rgb(var(--accent)) 60%, white) 53%,
-      rgb(var(--accent)) 58%,
-      rgb(var(--accent)) 100%
+      color-mix(in srgb, rgb(var(--accent)) 45%, white) 0%,
+      rgb(var(--accent)) 48%,
+      color-mix(in srgb, rgb(var(--accent)) 72%, black) 100%
     );
     box-shadow: 0 0 16px rgb(var(--accent) / 0.55);
   }

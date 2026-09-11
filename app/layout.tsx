@@ -9,6 +9,7 @@ import {
   Anton,
   Press_Start_2P,
   Fredoka,
+  Luckiest_Guy,
   Cairo,
 } from "next/font/google";
 import "./globals.css";
@@ -47,6 +48,12 @@ const pressStart = Press_Start_2P({
   display: "swap",
 });
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-fredoka", display: "swap" });
+const luckiestGuy = Luckiest_Guy({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-luckiest-guy",
+  display: "swap",
+});
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
   variable: "--font-cairo",
@@ -63,6 +70,7 @@ const fontVars = [
   anton.variable,
   pressStart.variable,
   fredoka.variable,
+  luckiestGuy.variable,
   cairo.variable,
 ].join(" ");
 
@@ -78,7 +86,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#ffffff",
+  themeColor: "#09090c",
 };
 
 export default function RootLayout({

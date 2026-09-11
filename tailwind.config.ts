@@ -33,6 +33,7 @@ const config: Config = {
         anton: ["var(--font-anton)", "system-ui", "sans-serif"],
         pixel: ["var(--font-press-start)", "monospace"],
         fredoka: ["var(--font-fredoka)", "system-ui", "sans-serif"],
+        "luckiest-guy": ["var(--font-luckiest-guy)", "system-ui", "sans-serif"],
         cairo: ["var(--font-cairo)", "system-ui", "sans-serif"],
       },
       borderWidth: { 3: "3px", 5: "5px" },
