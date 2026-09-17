@@ -13,17 +13,19 @@ export function renderCaptionBitmap(
   fontSize: number,
   treatment: string,
   lang: Lang,
-  /** "now-playing" only — the user-editable "artist" row under the title. Falls back to "Photo Booth" when blank. */
+  /** "now-playing" — the user-editable "artist" row under the title, falls back to "Photo Booth". "boarding-pass" — the "TO" city, falls back to "DESTINATION". Unused otherwise. */
   subtitleText?: string,
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
-  // "now-playing" always shows its title+subtitle row (falling back to a
-  // placeholder title) so the card never looks broken when the user hasn't
-  // typed a caption yet — every other treatment stays hidden when empty.
-  if (!ctx || (!text.trim() && treatment !== "now-playing")) return canvas;
+  // "now-playing" and "boarding-pass" always show their fixed two-line
+  // layout (falling back to placeholder text) so the card never looks
+  // broken before the user has typed anything — every other treatment
+  // stays hidden when empty.
+  const alwaysShows = treatment === "now-playing" || treatment === "boarding-pass";
+  if (!ctx || (!text.trim() && !alwaysShows)) return canvas;
 
   const family = readCssVar(fontVar) || "sans-serif";
   ctx.direction = lang === "ar" ? "rtl" : "ltr";
@@ -114,6 +116,43 @@ export function renderCaptionBitmap(
     ctx.fillStyle = colors.muted;
     ctx.font = `500 ${fontSize * 0.55}px ${family}`;
     ctx.fillText(subtitleText?.trim() || "Photo Booth", titleX, titleY + fontSize * 0.72);
+  } else if (treatment === "boarding-pass") {
+    // A two-column ticket field row — FROM on the left, TO on the right,
+    // split by a dotted divider like the reference boarding-pass stub.
+    // Small uppercase Montserrat labels above bold Bebas Neue city names.
+    const labelFamily = readCssVar("--font-montserrat") || "sans-serif";
+    const from = text.trim() || "YOUR CITY";
+    const to = subtitleText?.trim() || "DESTINATION";
+    const padX = width * 0.08;
+    const colGap = width * 0.06;
+    const colW = (width - padX * 2 - colGap) / 2;
+    const leftX = padX;
+    const rightX = padX + colW + colGap;
+    const labelY = height * 0.32;
+    const valueY = height * 0.62;
+
+    ctx.textBaseline = "alphabetic";
+    ctx.direction = "ltr";
+    ctx.textAlign = "left";
+
+    ctx.fillStyle = colors.muted;
+    ctx.font = `700 ${fontSize * 0.32}px ${labelFamily}`;
+    ctx.fillText("FROM", leftX, labelY, colW);
+    ctx.fillText("TO", rightX, labelY, colW);
+
+    ctx.fillStyle = colors.ink;
+    ctx.font = `400 ${fontSize}px ${family}`;
+    ctx.fillText(from.toUpperCase(), leftX, valueY, colW);
+    ctx.fillText(to.toUpperCase(), rightX, valueY, colW);
+
+    ctx.strokeStyle = colors.muted;
+    ctx.lineWidth = Math.max(1, fontSize * 0.03);
+    ctx.setLineDash([fontSize * 0.06, fontSize * 0.12]);
+    ctx.beginPath();
+    ctx.moveTo(width / 2, height * 0.18);
+    ctx.lineTo(width / 2, height * 0.78);
+    ctx.stroke();
+    ctx.setLineDash([]);
   } else if (treatment === "airmail-tag") {
     ctx.font = `400 ${fontSize}px ${family}`;
     ctx.fillStyle = colors.ink;

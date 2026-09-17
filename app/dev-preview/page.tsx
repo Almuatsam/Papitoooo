@@ -46,6 +46,7 @@ export default function DevPreviewPage() {
     const layoutId = (sp.get("layout") ?? "strip-4") as LayoutId;
     const caption = sp.get("caption") ?? "friday night";
     const subtitle = sp.get("subtitle") ?? "";
+    const accentColor = sp.get("accent") ?? "";
     const seed = Number(sp.get("seed") ?? "0.42");
     const lang = (sp.get("lang") ?? "en") as Lang;
     setLabel(`${themeId} / ${layoutId}`);
@@ -60,6 +61,7 @@ export default function DevPreviewPage() {
       layoutId,
       borderColor: "",
       bgColor: "",
+      accentColor,
       caption,
       subtitle,
       showDate: true,

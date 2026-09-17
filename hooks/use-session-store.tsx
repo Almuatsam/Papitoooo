@@ -46,6 +46,7 @@ function defaultSettings(): SessionSettings {
     layoutId: DEFAULT_LAYOUT,
     borderColor: "",
     bgColor: "",
+    accentColor: "",
     caption: "",
     subtitle: "",
     showDate: true,

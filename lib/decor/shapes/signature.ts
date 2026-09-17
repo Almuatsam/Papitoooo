@@ -39,6 +39,67 @@ export function barcode(color: string, w = 90, h = 28, seed = 0): HTMLCanvasElem
   return canvas;
 }
 
+/**
+ * A simple side-profile jet silhouette (the same shape family as the common
+ * "flight" glyph) — original geometry drawn from scratch, not any specific
+ * airline's logo. Path is authored in a 24x24 box, nose pointing up-right at
+ * 0deg; callers rotate as needed. Exported so both the header band and the
+ * `airplane-motif` decoration piece draw the exact same glyph.
+ */
+export function drawAirplaneIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number,
+  color: string,
+  angleDeg = -40,
+): void {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((angleDeg * Math.PI) / 180);
+  const s = size / 24;
+  ctx.scale(s, s);
+  ctx.translate(-12, -12);
+  ctx.fillStyle = color;
+  ctx.fill(
+    new Path2D(
+      "M21 16v-2l-8-5V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2.5 1.5V22l4-1 4 1v-1.5L13 19v-5.5z",
+    ),
+  );
+  ctx.restore();
+}
+
+/** A handful of short tapering speed-lines trailing to the left of (x, y) — used behind header/wordmark text, like a plane's motion trail. */
+export function drawFlightStreaks(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  color: string,
+): void {
+  const rowOffsets = [-4, 0, 4];
+  ctx.strokeStyle = color;
+  ctx.lineCap = "round";
+  rowOffsets.forEach((dy) => {
+    const rowW = w * (1 - Math.abs(dy) * 0.05);
+    ctx.globalAlpha = dy === 0 ? 0.55 : 0.3;
+    ctx.lineWidth = dy === 0 ? 2 : 1.3;
+    ctx.beginPath();
+    ctx.moveTo(x - rowW, y + dy);
+    ctx.lineTo(x, y + dy);
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+}
+
+/** A large, low-opacity airplane watermark — meant to sit behind photos/fields as recurring theme decoration. */
+export function airplaneMotif(color: string, w = 260, h = 180): HTMLCanvasElement {
+  const { canvas, ctx } = makeCanvas(w, h);
+  if (!ctx) return canvas;
+  drawAirplaneIcon(ctx, w / 2, h / 2, Math.min(w, h) * 0.92, color, -35);
+  return canvas;
+}
+
 /** An ornate circular corner badge — an original abstract mountain/fan-style motif, not any real festival's artwork. */
 export function cornerMedallion(color: string, secondaryColor: string, size = 44, seed = 0): HTMLCanvasElement {
   const { canvas, ctx } = makeCanvas(size, size);
@@ -242,16 +303,17 @@ function drawQueueGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, s
   }
 }
 
-/** A small ticket field grid (e.g. FROM/TO or GATE/SEAT) with placeholder-style text, boarding-pass style. */
-export function routeFieldBlock(color: string, w = 120, h = 44, seed = 0): HTMLCanvasElement {
+/**
+ * A small two-cell ticket field grid — GATE/SEAT placeholder-style text,
+ * boarding-pass style. FROM/TO are real user-editable fields rendered
+ * separately (see the "boarding-pass" captionTreatment in
+ * lib/decor/caption-bitmap.ts), so this decorative block stays to the
+ * supporting fields only and never duplicates them.
+ */
+export function routeFieldBlock(color: string, w = 120, h = 44): HTMLCanvasElement {
   const { canvas, ctx } = makeCanvas(w, h);
   if (!ctx) return canvas;
-  const rand = mulberry32(seed);
-  const labelPairs = [
-    ["FROM", "TO"],
-    ["GATE", "SEAT"],
-  ];
-  const labels = labelPairs[Math.floor(rand() * labelPairs.length)];
+  const labels = ["GATE", "SEAT"];
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.strokeRect(0.5, 0.5, w - 1, h - 1);

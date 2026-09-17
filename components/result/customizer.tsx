@@ -5,7 +5,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { FilterCarousel } from "@/components/camera/filter-carousel";
 import { StickerTray } from "@/components/result/sticker-tray";
 import { ThemeBrowser } from "@/components/result/theme-browser";
-import { BORDER_SWATCHES, BG_SWATCHES } from "@/lib/themes";
+import { BORDER_SWATCHES, BG_SWATCHES, ACCENT_SWATCHES } from "@/lib/themes";
 import type { SessionSettings } from "@/types";
 
 interface CustomizerProps {
@@ -79,7 +79,36 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
         </Field>
       </div>
 
-      {settings.themeId === "streaming-card" ? (
+      {settings.themeId === "boarding-pass" ? (
+        <Field label={t.result.headerColor}>
+          <Swatches value={settings.accentColor} options={ACCENT_SWATCHES} onSelect={(accentColor) => onChange({ accentColor })} />
+        </Field>
+      ) : null}
+
+      {settings.themeId === "boarding-pass" ? (
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t.result.from}>
+            <input
+              type="text"
+              value={settings.caption}
+              maxLength={28}
+              placeholder={t.result.fromPlaceholder}
+              onChange={(e) => onChange({ caption: e.target.value })}
+              className="facet-sm w-full border-3 border-line bg-panel px-3 py-2 text-base font-medium text-ink outline-none placeholder:text-muted focus-visible:ring-4 focus-visible:ring-accent/40"
+            />
+          </Field>
+          <Field label={t.result.to}>
+            <input
+              type="text"
+              value={settings.subtitle}
+              maxLength={28}
+              placeholder={t.result.toPlaceholder}
+              onChange={(e) => onChange({ subtitle: e.target.value })}
+              className="facet-sm w-full border-3 border-line bg-panel px-3 py-2 text-base font-medium text-ink outline-none placeholder:text-muted focus-visible:ring-4 focus-visible:ring-accent/40"
+            />
+          </Field>
+        </div>
+      ) : settings.themeId === "streaming-card" ? (
         <div className="grid grid-cols-2 gap-4">
           <Field label={t.result.song}>
             <input

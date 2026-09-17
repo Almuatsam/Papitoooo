@@ -79,6 +79,7 @@ export type StripPieceKind =
   | "postage-stamp-piece"
   | "wax-seal"
   | "approved-stamp"
+  | "airplane-motif"
   // ---- real composited asset (SVG loaded as-is, not hand-drawn) -----------
   | "asset-svg";
 
@@ -138,7 +139,8 @@ export type CaptionTreatment =
   | "poster-arc"
   | "marker-headline"
   | "airmail-tag"
-  | "now-playing";
+  | "now-playing"
+  | "boarding-pass";
 
 export interface StripBackground {
   kind: "solid" | "pattern" | "texture" | "pattern+texture";
@@ -188,6 +190,17 @@ export interface ThemeDef {
     captionFontSize: number;
     /** Outer frame baked around the whole strip. "ticket" = a perforation line along one edge; "airmail" = a diagonal striped band around all edges. */
     outerFrame: { style: "none" | "solid" | "dashed" | "chrome" | "scallop" | "ticket" | "airmail"; width: number };
+    /**
+     * A solid-color band across the very top of the strip (Boarding Pass's
+     * "BOARDING PASS" bar) — drawn full-width, `height` tall, before the
+     * outer frame. `color` resolves to `colors.accent` by default but is
+     * user-overridable (see RenderStripInput.accentColor in
+     * lib/strip-renderer.ts); `label` is drawn on it next to a small
+     * airplane glyph in the paper colour. Reserve room for it by sizing
+     * this theme's `outerPad` generously — the band paints into that
+     * margin, it doesn't add its own layout space.
+     */
+    headerBand?: { height: number; label: string };
     /**
      * Small authored rotation (degrees) applied to the fully-composited
      * strip as a final raster postprocessing step — e.g. Arcade Corkboard's

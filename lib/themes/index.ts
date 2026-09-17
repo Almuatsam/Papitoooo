@@ -46,3 +46,5 @@ export function getTheme(id: StripThemeId): ThemeDef {
 /** Swatches offered in the customizer. `""` means "use the theme default". */
 export const BORDER_SWATCHES = ["", "#101014", "#ffffff", "#c8102e", "#c9a227", "#0a1f44", "#00e5ff"];
 export const BG_SWATCHES = ["", "#ffffff", "#f7f4ec", "#101014", "#fdf6e8", "#f5efe0", "#12163a"];
+/** Swatches for a theme's `strip.headerBand` colour (Boarding Pass). `""` = theme default (blue). */
+export const ACCENT_SWATCHES = ["", "#0a1f44", "#c8102e", "#0f6e3e", "#c9a227", "#5b2a86", "#101014"];

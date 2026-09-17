@@ -58,8 +58,10 @@ export interface SessionSettings {
   layoutId: LayoutId;
   borderColor: string;
   bgColor: string;
+  /** "" = theme default. Overrides a theme's `strip.headerBand` color (e.g. Boarding Pass's top band); ignored by themes without a header band. */
+  accentColor: string;
   caption: string;
-  /** Second text line under the caption — only surfaced in the UI (as "Artist") and rendered when the theme's captionTreatment is "now-playing"; ignored by every other theme. */
+  /** Second text line under the caption — surfaced in the UI as "Artist" (now-playing) or "To" (boarding-pass) and rendered accordingly; ignored by every other theme. */
   subtitle: string;
   showDate: boolean;
   stickers: StickerInstance[];

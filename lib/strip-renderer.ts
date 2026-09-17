@@ -7,6 +7,7 @@ import { svgToDataUrl } from "@/lib/decor/stickers";
 import { loadHtmlImage } from "@/lib/decor/load-image";
 import { roundRectPath } from "@/lib/decor/canvas-utils";
 import { renderCaptionBitmap } from "@/lib/decor/caption-bitmap";
+import { renderHeaderBand } from "@/lib/decor/header-band";
 import { drawOuterFrame } from "@/lib/decor/outer-frame";
 import { applyDoublePrint, applyTilt } from "@/lib/decor/strip-postprocess";
 import { renderPiece, seedFrom, mulberry32 } from "@/lib/decor/strip-pieces";
@@ -22,6 +23,8 @@ export interface RenderStripInput {
   borderColor: string;
   /** "" = use the theme default. */
   bgColor: string;
+  /** "" = use the theme default (colors.accent). Only visible on themes with a `strip.headerBand`, e.g. Boarding Pass's top band. */
+  accentColor?: string;
   caption: string;
   /** Second text line — only used by themes whose captionTreatment is "now-playing" (rendered as the "artist" row). Ignored otherwise. */
   subtitle?: string;
@@ -161,6 +164,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     layoutId,
     borderColor,
     bgColor,
+    accentColor = "",
     caption,
     subtitle = "",
     showDate,
@@ -257,6 +261,20 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("[strip-renderer] background pattern/texture failed, skipping", err);
+    }
+
+    // ---- header band (Boarding Pass's "BOARDING PASS" bar) --------------
+    // Drawn into the theme's own outerPad margin, before the outer frame,
+    // so the frame's border/perforation still wraps around it.
+    if (strip.headerBand) {
+      try {
+        const headerColor = accentColor || colors.accent;
+        const bandCanvas = renderHeaderBand(canvasW, strip.headerBand.height, headerColor, paper, strip.headerBand.label, strip.captionFontVar);
+        fCanvas.add(new FabricImage(bandCanvas, { left: 0, top: 0, selectable: false, evented: false }));
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("[strip-renderer] header band failed, skipping", err);
+      }
     }
 
     // ---- outer frame ---------------------------------------------------
@@ -476,16 +494,17 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       const parts: string[] = [];
       const trimmed = caption.trim();
       if (trimmed) parts.push(trimmed);
-      // The "now-playing" treatment (Streaming Card) is a title/artist row,
-      // not a caption+date line — it never shows the date, regardless of the
-      // user's global showDate toggle, and always draws (placeholder title)
-      // since the now-playing-panel piece below it expects this row present.
-      const isNowPlaying = strip.captionTreatment === "now-playing";
-      if (showDate && !isNowPlaying) {
+      // "now-playing" (Streaming Card) is a title/artist row and
+      // "boarding-pass" (Boarding Pass) is a FROM/TO route row — neither is
+      // a caption+date line, so both ignore the date entirely and always
+      // draw (with placeholder text) since a structural piece below each
+      // (now-playing-panel / the barcode+tear line) expects this row present.
+      const hasOwnFixedLayout = strip.captionTreatment === "now-playing" || strip.captionTreatment === "boarding-pass";
+      if (showDate && !hasOwnFixedLayout) {
         const locale = lang === "ar" ? "ar" : undefined;
         parts.push(new Date().toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }));
       }
-      if (parts.length > 0 || isNowPlaying) {
+      if (parts.length > 0 || hasOwnFixedLayout) {
         const label = parts.join("   ·   ");
         const captionCanvas = renderCaptionBitmap(
           canvasW,

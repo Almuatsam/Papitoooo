@@ -68,6 +68,7 @@ import {
 } from "@/lib/decor/shapes/organic";
 import { crumpledPaper, dieCutPiece, foldedCorner, paperTab, photoFragment, stickerCorner } from "@/lib/decor/shapes/handmade";
 import {
+  airplaneMotif,
   approvedStamp,
   barcode,
   cornerMedallion,
@@ -154,6 +155,7 @@ const DEFAULT_SIZE: Record<StripPieceKind, [number, number]> = {
   "postage-stamp-piece": [46, 54],
   "wax-seal": [32, 32],
   "approved-stamp": [90, 36],
+  "airplane-motif": [260, 180],
   // "asset-svg" pieces are loaded+sized directly in lib/strip-renderer.ts
   // (real SVG art, natural aspect preserved) and never reach drawShape()/
   // renderPiece() below; this entry only exists to keep the Record exhaustive.
@@ -291,7 +293,9 @@ function drawShape(
     case "now-playing-panel":
       return nowPlayingPanel(color, secondaryColor, w, h);
     case "route-field-block":
-      return routeFieldBlock(color, w, h, seed);
+      return routeFieldBlock(color, w, h);
+    case "airplane-motif":
+      return airplaneMotif(color, w, h);
     case "receipt-header":
       return receiptHeader(color, w, h);
     case "receipt-footer":

@@ -11,6 +11,8 @@ import {
   Fredoka,
   Flavors,
   Cairo,
+  Bebas_Neue,
+  Montserrat,
 } from "next/font/google";
 import "./globals.css";
 
@@ -61,6 +63,19 @@ const cairo = Cairo({
   variable: "--font-cairo",
   display: "swap",
 });
+// Boarding Pass theme: Bebas Neue for bold headline/route text, Montserrat
+// for small labels — see Fonts.txt for attribution.
+const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-bebas-neue",
+  display: "swap",
+});
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 
 const fontVars = [
   archivo.variable,
@@ -74,6 +89,8 @@ const fontVars = [
   fredoka.variable,
   flavors.variable,
   cairo.variable,
+  bebasNeue.variable,
+  montserrat.variable,
 ].join(" ");
 
 export const metadata: Metadata = {

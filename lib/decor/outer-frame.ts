@@ -71,10 +71,11 @@ export function drawOuterFrame(
       }),
     );
   } else if (strip.outerFrame.style === "ticket") {
-    // A card outline plus a repeating small perforation line along every
-    // edge — adapts the same circle-stamp technique "scallop" uses in
-    // lib/strip-renderer.ts, at a smaller, denser scale so it reads as
-    // punched holes, not bites.
+    // A card outline plus one horizontal tear line — a dashed row of
+    // punched dots at the boundary between the photos and the bottom
+    // "stub" band (barcode + route fields), with a semicircle notch bitten
+    // out of the left/right border exactly where the tear line meets it.
+    // That notch is what actually reads as "ticket stub", not the dashes.
     const w = strip.outerFrame.width;
     fCanvas.add(
       new Rect({
@@ -89,18 +90,30 @@ export function drawOuterFrame(
         evented: false,
       }),
     );
-    const r = w * 0.35;
-    const step = r * 2.4;
-    const addPerforation = (x: number, y: number) =>
-      fCanvas.add(new Circle({ left: x - r, top: y - r, radius: r, fill: paper, selectable: false, evented: false }));
-    for (let x = w; x <= canvasW - w; x += step) {
-      addPerforation(x, w);
-      addPerforation(x, canvasH - w);
+
+    const tearY = canvasH - strip.bottomPad;
+    const dotR = Math.max(2, canvasW * 0.007);
+    const dotStep = dotR * 3.2;
+    for (let x = w * 1.2; x <= canvasW - w * 1.2; x += dotStep) {
+      fCanvas.add(
+        new Circle({ left: x - dotR, top: tearY - dotR, radius: dotR, fill: paper, selectable: false, evented: false }),
+      );
     }
-    for (let y = w; y <= canvasH - w; y += step) {
-      addPerforation(w, y);
-      addPerforation(canvasW - w, y);
-    }
+
+    const notchR = Math.max(10, canvasW * 0.022);
+    fCanvas.add(
+      new Circle({ left: -notchR, top: tearY - notchR, radius: notchR, fill: paper, selectable: false, evented: false }),
+    );
+    fCanvas.add(
+      new Circle({
+        left: canvasW - notchR,
+        top: tearY - notchR,
+        radius: notchR,
+        fill: paper,
+        selectable: false,
+        evented: false,
+      }),
+    );
   } else if (strip.outerFrame.style === "airmail") {
     // A diagonal red/navy striped band around every edge, reusing the
     // existing stripes-diagonal pattern rather than a bespoke drawing.
