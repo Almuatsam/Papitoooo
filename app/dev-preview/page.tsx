@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { renderStrip } from "@/lib/strip-renderer";
 import { PHOTO_HEIGHT, PHOTO_WIDTH } from "@/lib/constants";
 import { getLayout } from "@/lib/layouts";
-import type { LayoutId, StripThemeId } from "@/types";
+import type { Lang, LayoutId, StripThemeId } from "@/types";
 
 function placeholderFrame(seed: number): string {
   const canvas = document.createElement("canvas");
@@ -45,7 +45,9 @@ export default function DevPreviewPage() {
     const themeId = (sp.get("theme") ?? "receipt") as StripThemeId;
     const layoutId = (sp.get("layout") ?? "strip-4") as LayoutId;
     const caption = sp.get("caption") ?? "friday night";
+    const subtitle = sp.get("subtitle") ?? "";
     const seed = Number(sp.get("seed") ?? "0.42");
+    const lang = (sp.get("lang") ?? "en") as Lang;
     setLabel(`${themeId} / ${layoutId}`);
 
     const count = getLayout(layoutId).photoCount;
@@ -59,9 +61,10 @@ export default function DevPreviewPage() {
       borderColor: "",
       bgColor: "",
       caption,
+      subtitle,
       showDate: true,
       stickers: [],
-      lang: "en",
+      lang,
       scale: 1,
       decorSeed: seed,
     })

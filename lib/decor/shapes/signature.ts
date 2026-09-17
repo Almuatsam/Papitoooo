@@ -76,91 +76,170 @@ export function cornerMedallion(color: string, secondaryColor: string, size = 44
   return canvas;
 }
 
-/** A small "now playing" icon + a wavy amplitude-bar row — original waveform art, no real player's UI. */
-export function waveformBar(color: string, w = 110, h = 20, seed = 0): HTMLCanvasElement {
+/**
+ * A "now playing" control stack — scrubber + elapsed/remaining time,
+ * prev/play-pause/next transport row, a volume bar, and a small bottom
+ * utility-icon row. Structural reference only (spacing/hierarchy of a
+ * real now-playing screen); every glyph here is an original generic
+ * shape, not any specific app's icon set or wordmark.
+ */
+export function nowPlayingPanel(color: string, mutedColor: string, w = 580, h = 220): HTMLCanvasElement {
   const { canvas, ctx } = makeCanvas(w, h);
   if (!ctx) return canvas;
-  const rand = mulberry32(seed);
+  const marginX = w * 0.07;
+  const trackW = w - marginX * 2;
+
+  // ---- progress scrubber -------------------------------------------------
+  const trackY = h * 0.12;
+  const trackH = Math.max(2, h * 0.018);
+  ctx.fillStyle = mutedColor;
+  ctx.globalAlpha = 0.35;
+  roundRectAt(ctx, marginX, trackY - trackH / 2, trackW, trackH, trackH / 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  const fillFrac = 0.32;
+  ctx.fillStyle = color;
+  roundRectAt(ctx, marginX, trackY - trackH / 2, trackW * fillFrac, trackH, trackH / 2);
+  ctx.fill();
+  const knobX = marginX + trackW * fillFrac;
+  ctx.beginPath();
+  ctx.arc(knobX, trackY, h * 0.032, 0, Math.PI * 2);
+  ctx.fill();
+
+  const timeSize = h * 0.06;
+  ctx.font = `500 ${timeSize}px monospace`;
+  ctx.fillStyle = mutedColor;
+  ctx.textBaseline = "middle";
+  const timeY = trackY + h * 0.09;
+  ctx.textAlign = "left";
+  ctx.fillText("0:42", marginX, timeY);
+  ctx.textAlign = "right";
+  ctx.fillText("-2:18", marginX + trackW, timeY);
+
+  // ---- transport row (prev / play-pause / next) --------------------------
+  const ctrlY = h * 0.44;
+  const cx = w / 2;
+  const primaryR = h * 0.115;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(h * 0.5, h * 0.5, h * 0.42, 0, Math.PI * 2);
+  ctx.arc(cx, ctrlY, primaryR, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#ffffff";
-  ctx.beginPath();
-  ctx.moveTo(h * 0.38, h * 0.3);
-  ctx.lineTo(h * 0.38, h * 0.7);
-  ctx.lineTo(h * 0.68, h * 0.5);
-  ctx.closePath();
-  ctx.fill();
-  const barsX = h * 1.3;
-  const barsW = w - barsX - 4;
-  const bars = 18;
+  const barW = primaryR * 0.22;
+  const barH = primaryR * 0.8;
+  ctx.fillRect(cx - barW * 1.6, ctrlY - barH / 2, barW, barH);
+  ctx.fillRect(cx + barW * 0.6, ctrlY - barH / 2, barW, barH);
+
   ctx.fillStyle = color;
-  for (let i = 0; i < bars; i++) {
-    const bh = h * (0.2 + rand() * 0.75);
-    ctx.fillRect(barsX + i * (barsW / bars), (h - bh) / 2, (barsW / bars) * 0.55, bh);
-  }
+  drawSkipGlyph(ctx, cx - primaryR * 2.3, ctrlY, primaryR * 0.62, -1);
+  drawSkipGlyph(ctx, cx + primaryR * 2.3, ctrlY, primaryR * 0.62, 1);
+
+  // ---- volume bar ---------------------------------------------------------
+  const volY = h * 0.7;
+  const iconR = h * 0.03;
+  drawSpeaker(ctx, marginX + iconR, volY, iconR, mutedColor, false);
+  drawSpeaker(ctx, marginX + trackW - iconR, volY, iconR * 1.3, mutedColor, true);
+  const volBarX = marginX + iconR * 3.2;
+  const volBarW = trackW - iconR * 6.4;
+  const volH = Math.max(2, h * 0.014);
+  ctx.fillStyle = mutedColor;
+  ctx.globalAlpha = 0.3;
+  roundRectAt(ctx, volBarX, volY - volH / 2, volBarW, volH, volH / 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = mutedColor;
+  roundRectAt(ctx, volBarX, volY - volH / 2, volBarW * 0.55, volH, volH / 2);
+  ctx.fill();
+
+  // ---- bottom utility icon row --------------------------------------------
+  const iconY = h * 0.92;
+  const iconSize = h * 0.05;
+  ctx.strokeStyle = mutedColor;
+  ctx.fillStyle = mutedColor;
+  ctx.lineWidth = Math.max(1, h * 0.008);
+  drawCaptionsGlyph(ctx, marginX + iconSize, iconY, iconSize);
+  drawCastGlyph(ctx, cx, iconY, iconSize);
+  drawQueueGlyph(ctx, marginX + trackW - iconSize, iconY, iconSize);
+
   return canvas;
 }
 
-/** A minimal play/skip glyph row — original icon shapes, not any real app's controls. */
-export function playbackRow(color: string, w = 90, h = 18): HTMLCanvasElement {
-  const { canvas, ctx } = makeCanvas(w, h);
-  if (!ctx) return canvas;
-  ctx.fillStyle = color;
-  const cx = w * 0.5;
-  const cy = h * 0.5;
+function roundRectAt(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+  const radius = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
-  ctx.moveTo(cx - h * 0.28, cy - h * 0.32);
-  ctx.lineTo(cx - h * 0.28, cy + h * 0.32);
-  ctx.lineTo(cx + h * 0.32, cy);
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
   ctx.closePath();
-  ctx.fill();
-  const fx = cx + h * 0.9;
-  ctx.beginPath();
-  ctx.moveTo(fx - h * 0.28, cy - h * 0.32);
-  ctx.lineTo(fx - h * 0.28, cy + h * 0.32);
-  ctx.lineTo(fx + h * 0.32, cy);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillRect(fx + h * 0.32, cy - h * 0.32, h * 0.12, h * 0.64);
-  const bx = cx - h * 0.9;
-  ctx.beginPath();
-  ctx.moveTo(bx + h * 0.28, cy - h * 0.32);
-  ctx.lineTo(bx + h * 0.28, cy + h * 0.32);
-  ctx.lineTo(bx - h * 0.32, cy);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillRect(bx - h * 0.44, cy - h * 0.32, h * 0.12, h * 0.64);
-  return canvas;
 }
 
-/** A corkboard push-pin sticker — head + shadow + needle. Rotates naturally with the whole strip when the theme applies its `tiltDeg`. */
-export function pushPin(color: string, size = 30, seed = 0): HTMLCanvasElement {
-  const { canvas, ctx } = makeCanvas(size, size * 1.3);
-  if (!ctx) return canvas;
-  const rand = mulberry32(seed);
-  const cx = size / 2;
-  const cy = size * 0.4;
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
+/** A skip-back/skip-forward glyph: triangle + end bar, mirrored by `dir`. */
+function drawSkipGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, dir: 1 | -1): void {
   ctx.beginPath();
-  ctx.ellipse(cx + 2, cy + 3, size * 0.28, size * 0.12, 0, 0, Math.PI * 2);
+  ctx.moveTo(cx - r * 0.5 * dir, cy - r * 0.6);
+  ctx.lineTo(cx - r * 0.5 * dir, cy + r * 0.6);
+  ctx.lineTo(cx + r * 0.55 * dir, cy);
+  ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = "#8a8a92";
-  ctx.lineWidth = Math.max(1.5, size * 0.06);
+  ctx.fillRect(cx + r * 0.55 * dir - (dir > 0 ? 0 : r * 0.22), cy - r * 0.6, r * 0.22, r * 1.2);
+}
+
+/** A generic speaker glyph — body + one or two volume arcs, no brand icon. */
+function drawSpeaker(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, color: string, loud: boolean): void {
+  ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx, size * 1.15);
+  ctx.moveTo(cx - r * 1.6, cy - r * 0.5);
+  ctx.lineTo(cx - r * 0.7, cy - r * 0.5);
+  ctx.lineTo(cx, cy - r * 1.1);
+  ctx.lineTo(cx, cy + r * 1.1);
+  ctx.lineTo(cx - r * 0.7, cy + r * 0.5);
+  ctx.lineTo(cx - r * 1.6, cy + r * 0.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, r * 0.22);
+  ctx.beginPath();
+  ctx.arc(cx + r * 0.3, cy, r * 1.1, -0.5, 0.5);
   ctx.stroke();
-  ctx.fillStyle = color;
+  if (loud) {
+    ctx.beginPath();
+    ctx.arc(cx + r * 0.3, cy, r * 1.7, -0.6, 0.6);
+    ctx.stroke();
+  }
+}
+
+/** A captions/subtitle glyph — a small rounded tile with two text dashes. */
+function drawCaptionsGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number): void {
+  roundRectAt(ctx, cx - size, cy - size * 0.7, size * 2, size * 1.4, size * 0.25);
+  ctx.stroke();
+  ctx.fillRect(cx - size * 0.65, cy - size * 0.2, size * 0.8, size * 0.2);
+  ctx.fillRect(cx - size * 0.65, cy + size * 0.15, size * 1.3, size * 0.2);
+}
+
+/** A cast/stream glyph — a small screen with broadcast arcs at one corner. */
+function drawCastGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number): void {
+  roundRectAt(ctx, cx - size, cy - size * 0.7, size * 2, size * 1.3, size * 0.2);
+  ctx.stroke();
   ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.32, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.arc(cx - size, cy + size * 0.7, size * 0.35, -Math.PI / 2, 0);
+  ctx.stroke();
   ctx.beginPath();
-  ctx.ellipse(cx - size * 0.1, cy - size * 0.1, size * 0.1, size * 0.06, -0.5 + rand() * 0.2, 0, Math.PI * 2);
+  ctx.arc(cx - size, cy + size * 0.7, size * 0.7, -Math.PI / 2, 0);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx - size * 0.65, cy + size * 0.7, size * 0.12, 0, Math.PI * 2);
   ctx.fill();
-  return canvas;
+}
+
+/** A queue/list glyph — three stacked lines with a small leading square. */
+function drawQueueGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number): void {
+  for (let i = -1; i <= 1; i++) {
+    const y = cy + i * size * 0.5;
+    ctx.fillRect(cx - size, y - size * 0.08, size * 0.35, size * 0.16);
+    ctx.fillRect(cx - size * 0.5, y - size * 0.06, size * 1.5, size * 0.12);
+  }
 }
 
 /** A small ticket field grid (e.g. FROM/TO or GATE/SEAT) with placeholder-style text, boarding-pass style. */

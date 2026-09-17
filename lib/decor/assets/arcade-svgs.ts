@@ -10,6 +10,33 @@
  * and composited as a "asset-svg" StripPieceKind (see lib/strip-renderer.ts).
  */
 
+/**
+ * A physically-lit push-pin — an `feSpecularLighting` pass over a
+ * low-frequency `feTurbulence` bump map (svg-material-effects skill's
+ * chrome/metal technique), clipped to the pin head via a `feComposite
+ * operator="in"` mask so the highlight doesn't spill past the circle.
+ * `baseFrequency` is tuned low (0.02) for one coherent glossy streak —
+ * the skill's own reference frequency (0.9) reads as hammered-metal
+ * glitter on a shape this small, verified by rendering both.
+ */
+export function pushPinChromeSvg(color: string): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140" viewBox="0 0 100 140">
+  <defs>
+    <filter id="pinChrome" x="-60%" y="-60%" width="220%" height="220%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" result="bumpNoise" seed="3"/>
+      <feSpecularLighting in="bumpNoise" lighting-color="#ffffff" surfaceScale="6" specularConstant="1.3" specularExponent="12" result="specular">
+        <feDistantLight azimuth="235" elevation="45"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceGraphic" operator="in" result="specularClipped"/>
+      <feComposite in="specularClipped" in2="SourceGraphic" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+    </filter>
+  </defs>
+  <ellipse cx="54" cy="112" rx="22" ry="9" fill="rgba(0,0,0,0.35)"/>
+  <rect x="47" y="58" width="5" height="66" rx="2.5" fill="#6a7bb0"/>
+  <circle cx="50" cy="42" r="34" fill="${color}" filter="url(#pinChrome)"/>
+</svg>`;
+}
+
 /** Small arcade-cabinet icon (flat, iconic) — used as a secondary sticker. Recolored from its original pastel palette to navy/cyan/magenta. */
 export const ENTERTAINMENT_CABINET_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="62.177177" height="124.51235" viewBox="0 0 62.177177 124.51235">
   <g transform="translate(-253.90012,-30.754482)">
@@ -39,6 +66,16 @@ export const ENTERTAINMENT_CABINET_SVG = `<svg xmlns="http://www.w3.org/2000/svg
 
 /** Blue arcade joystick — used as a rotated sticker. Recolored ball-top and button to the theme's neon accents; base stays near-black. */
 export const JOYSTICK_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="ballChrome" x="-60%" y="-60%" width="220%" height="220%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" result="bumpNoise" seed="5"/>
+      <feSpecularLighting in="bumpNoise" lighting-color="#ffffff" surfaceScale="5" specularConstant="1.4" specularExponent="11" result="specular">
+        <feDistantLight azimuth="235" elevation="48"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceGraphic" operator="in" result="specularClipped"/>
+      <feComposite in="specularClipped" in2="SourceGraphic" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+    </filter>
+  </defs>
   <rect fill="#0a0e1f" width="22.746965" height="21.118591" x="181.76474" y="337.65485" rx="2.9" ry="1.3" />
   <path fill="#0e1330" d="m 184.26562,339.67578 c -0.84072,-0.12257 -0.38832,0.8809 -0.5,1.38203 0,5.20404 0,10.40808 0,15.61211 1.79736,0.22694 3.62869,0.045 5.43946,0.10352 4.3034,-0.0219 8.61044,0.044 12.91156,-0.0332 0.75019,0.0355 0.25175,-0.99443 0.39508,-1.4703 0,-5.1707 0,-10.3414 0,-15.51211 -1.83514,-0.22572 -3.70305,-0.0459 -5.55117,-0.10351 -4.23141,0.0142 -8.4644,-0.0285 -12.69493,0.0215 z" />
   <rect fill="#d5d5d5" width="20.297653" height="108.55599" x="266.84592" y="251.11821" rx="2.37" ry="1.3" />
@@ -55,4 +92,5 @@ export const JOYSTICK_SVG = `<svg width="512" height="512" viewBox="0 0 512 512"
   <rect fill="#ff2fd6" width="101.51711" height="9.6328888" x="225.29335" y="201.36577" rx="2.76" ry="1.18" />
   <ellipse fill="#e6ebff" cx="300.36185" cy="70.406143" rx="2.9110854" ry="7.5378776" transform="rotate(21.239449)" />
   <path fill="#f1f4ff" d="m 256.18358,169.82662 c -1.94023,2.11335 -3.03621,4.91327 -3.49069,7.71838 -0.014,0.41922 -0.21994,1.39422 0.0277,1.49888 1.91857,-2.09577 3.02919,-4.85743 3.48934,-7.63927 0.0802,-0.54965 0.11706,-1.10817 0.0737,-1.66275 l -0.0763,0.0647 z" />
+  <ellipse fill="#00e5ff" cx="260" cy="188" rx="26" ry="24" filter="url(#ballChrome)" />
 </svg>`;

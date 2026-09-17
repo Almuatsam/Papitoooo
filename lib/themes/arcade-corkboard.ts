@@ -1,6 +1,6 @@
 import type { ThemeDef } from "@/lib/themes/types";
 import { ARCADE_CABINET_SVG } from "@/lib/decor/assets/arcade-cabinet-svg";
-import { ENTERTAINMENT_CABINET_SVG, JOYSTICK_SVG } from "@/lib/decor/assets/arcade-svgs";
+import { ENTERTAINMENT_CABINET_SVG, JOYSTICK_SVG, pushPinChromeSvg } from "@/lib/decor/assets/arcade-svgs";
 
 export const arcadeCorkboard: ThemeDef = {
   id: "arcade-corkboard",
@@ -21,18 +21,42 @@ export const arcadeCorkboard: ThemeDef = {
     gap: 12,
     photoBorder: 3,
     radius: 4,
-    background: { kind: "pattern", patternId: "maze-lines", patternUsesAccent: false },
+    // "grain" breaks up the flat navy fill with a very low-opacity speckle
+    // (a corkboard/denim texture cue, not a paper one — see svg-material-
+    // effects skill) so the background reads as a surface, not a flat color.
+    background: { kind: "pattern+texture", patternId: "maze-lines", textureId: "grain", patternUsesAccent: false },
     photoRotationJitter: false,
     // The whole strip is tilted as a final postprocess (tiltDeg below) to
     // read as "pinned to a corkboard" — the push-pin piece rotates along
     // with everything else since it's just a normal frame-anchored piece.
     piecePool: [
-      { kind: "push-pin", material: "plastic", anchor: "frame", edge: "tl", color: "accent2", angle: 0, scale: 3.2, offset: { x: 40, y: 55 }, layer: "front", required: true },
+      // Physically-lit push-pin (feSpecularLighting on a bump map, clipped
+      // to the head) instead of a flat-filled circle — see
+      // lib/decor/assets/arcade-svgs.ts's pushPinChromeSvg.
+      {
+        kind: "asset-svg",
+        material: "plastic",
+        anchor: "frame",
+        edge: "tl",
+        color: "accent2",
+        angle: 0,
+        scale: 0.7,
+        offset: { x: 40, y: 55 },
+        layer: "front",
+        required: true,
+        assetSvg: pushPinChromeSvg("#ff2fd6"),
+      },
       // Real composited SVG assets (see lib/decor/assets/) — used as-is per
       // the visual-design-iteration skill, not redrawn as primitives. Corner
       // -anchored pieces are centered ON the corner (originX/Y: "center"),
       // so they need an inward offset or most of the image clips off-canvas
       // — verified by rendering, not just computed.
+      // Scaled down deliberately: only a subset of the source SVG's ~150
+      // paths were kept (see arcade-cabinet-svg.ts), so at full size the
+      // remaining fragments don't cohere into a recognizable cabinet
+      // silhouette — confirmed by rendering. Smaller, it reads as a
+      // secondary corner accent instead of an object the eye tries (and
+      // fails) to parse.
       {
         kind: "asset-svg",
         material: "plastic",
@@ -40,8 +64,8 @@ export const arcadeCorkboard: ThemeDef = {
         edge: "br",
         color: "accent",
         angle: -4,
-        scale: 1.0,
-        offset: { x: -60, y: -175 },
+        scale: 0.6,
+        offset: { x: -35, y: -100 },
         layer: "front",
         required: true,
         assetSvg: ARCADE_CABINET_SVG,

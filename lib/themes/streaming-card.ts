@@ -14,24 +14,39 @@ export const streamingCard: ThemeDef = {
     line: "#101014",
   },
   strip: {
-    outerPad: 26,
-    bottomPad: 64,
+    // Generous top spacing above the art (a real now-playing screen never
+    // crowds the album art to the top edge) and a tall bottom band that
+    // fits the title/artist row + the full transport-controls panel below
+    // it — see captionTreatment "now-playing" and the now-playing-panel
+    // piece, which split that band between them (see their offsets below).
+    outerPad: 60,
+    bottomPad: 360,
     gap: 14,
     photoBorder: 0,
-    radius: 18,
+    radius: 22,
     background: { kind: "solid" },
     photoRotationJitter: false,
-    // Deliberately the cleanest theme: only a top "now playing" bar and a
-    // bottom playback-glyph row are always present — no clutter beyond that.
+    // Deliberately the cleanest theme: the photo strip reads as album art,
+    // one title/artist row, one controls panel — no other clutter.
     piecePool: [
-      { kind: "waveform-bar", material: "hand-drawn", anchor: "frame", edge: "top", color: "accent", angle: 0, scale: 1, layer: "front", required: true },
-      { kind: "playback-row", material: "hand-drawn", anchor: "frame", edge: "bottom", color: "accent", angle: 0, scale: 1, layer: "front", required: true },
-      { kind: "thin-band", material: "hand-drawn", anchor: "frame", edge: "left", color: "accent2", angle: 90, scale: 0.3, layer: "back" },
+      {
+        kind: "now-playing-panel",
+        material: "hand-drawn",
+        anchor: "frame",
+        edge: "bottom",
+        color: "ink",
+        secondaryColor: "muted",
+        angle: 0,
+        scale: 1.15,
+        offset: { x: 0, y: 235 },
+        layer: "front",
+        required: true,
+      },
     ],
-    pieceCount: [2, 3],
-    captionTreatment: "plain",
-    captionFontVar: "--font-space-mono",
-    captionFontSize: 18,
+    pieceCount: [1, 1],
+    captionTreatment: "now-playing",
+    captionFontVar: "--font-archivo",
+    captionFontSize: 30,
     outerFrame: { style: "none", width: 0 },
   },
 };

@@ -23,6 +23,8 @@ export interface RenderStripInput {
   /** "" = use the theme default. */
   bgColor: string;
   caption: string;
+  /** Second text line — only used by themes whose captionTreatment is "now-playing" (rendered as the "artist" row). Ignored otherwise. */
+  subtitle?: string;
   showDate: boolean;
   stickers?: StickerInstance[];
   lang?: Lang;
@@ -160,6 +162,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     borderColor,
     bgColor,
     caption,
+    subtitle = "",
     showDate,
     stickers = [],
     lang = "en",
@@ -473,11 +476,16 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       const parts: string[] = [];
       const trimmed = caption.trim();
       if (trimmed) parts.push(trimmed);
-      if (showDate) {
+      // The "now-playing" treatment (Streaming Card) is a title/artist row,
+      // not a caption+date line — it never shows the date, regardless of the
+      // user's global showDate toggle, and always draws (placeholder title)
+      // since the now-playing-panel piece below it expects this row present.
+      const isNowPlaying = strip.captionTreatment === "now-playing";
+      if (showDate && !isNowPlaying) {
         const locale = lang === "ar" ? "ar" : undefined;
         parts.push(new Date().toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }));
       }
-      if (parts.length > 0) {
+      if (parts.length > 0 || isNowPlaying) {
         const label = parts.join("   ·   ");
         const captionCanvas = renderCaptionBitmap(
           canvasW,
@@ -488,6 +496,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
           strip.captionFontSize,
           strip.captionTreatment,
           lang,
+          subtitle,
         );
         fCanvas.add(
           new FabricImage(captionCanvas, {

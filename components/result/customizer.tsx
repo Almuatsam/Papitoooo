@@ -79,16 +79,41 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
         </Field>
       </div>
 
-      <Field label={t.result.caption}>
-        <input
-          type="text"
-          value={settings.caption}
-          maxLength={28}
-          placeholder={t.result.captionPlaceholder}
-          onChange={(e) => onChange({ caption: e.target.value })}
-          className="facet-sm w-full border-3 border-line bg-panel px-3 py-2 text-base font-medium text-ink outline-none placeholder:text-muted focus-visible:ring-4 focus-visible:ring-accent/40"
-        />
-      </Field>
+      {settings.themeId === "streaming-card" ? (
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t.result.song}>
+            <input
+              type="text"
+              value={settings.caption}
+              maxLength={28}
+              placeholder={t.result.songPlaceholder}
+              onChange={(e) => onChange({ caption: e.target.value })}
+              className="facet-sm w-full border-3 border-line bg-panel px-3 py-2 text-base font-medium text-ink outline-none placeholder:text-muted focus-visible:ring-4 focus-visible:ring-accent/40"
+            />
+          </Field>
+          <Field label={t.result.artist}>
+            <input
+              type="text"
+              value={settings.subtitle}
+              maxLength={28}
+              placeholder={t.result.artistPlaceholder}
+              onChange={(e) => onChange({ subtitle: e.target.value })}
+              className="facet-sm w-full border-3 border-line bg-panel px-3 py-2 text-base font-medium text-ink outline-none placeholder:text-muted focus-visible:ring-4 focus-visible:ring-accent/40"
+            />
+          </Field>
+        </div>
+      ) : (
+        <Field label={t.result.caption}>
+          <input
+            type="text"
+            value={settings.caption}
+            maxLength={28}
+            placeholder={t.result.captionPlaceholder}
+            onChange={(e) => onChange({ caption: e.target.value })}
+            className="facet-sm w-full border-3 border-line bg-panel px-3 py-2 text-base font-medium text-ink outline-none placeholder:text-muted focus-visible:ring-4 focus-visible:ring-accent/40"
+          />
+        </Field>
+      )}
 
       <Field label={t.result.date}>
         <button

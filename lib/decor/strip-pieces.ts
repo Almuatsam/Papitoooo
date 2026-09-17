@@ -71,13 +71,11 @@ import {
   approvedStamp,
   barcode,
   cornerMedallion,
-  playbackRow,
+  nowPlayingPanel,
   postageStampPiece,
-  pushPin,
   receiptFooter,
   receiptHeader,
   routeFieldBlock,
-  waveformBar,
   waxSeal,
 } from "@/lib/decor/shapes/signature";
 
@@ -149,9 +147,7 @@ const DEFAULT_SIZE: Record<StripPieceKind, [number, number]> = {
   // signature
   barcode: [90, 28],
   "corner-medallion": [44, 44],
-  "waveform-bar": [110, 20],
-  "playback-row": [90, 18],
-  "push-pin": [30, 39],
+  "now-playing-panel": [580, 220],
   "route-field-block": [120, 44],
   "receipt-header": [820, 110],
   "receipt-footer": [820, 90],
@@ -292,12 +288,8 @@ function drawShape(
       return barcode(color, w, h, seed);
     case "corner-medallion":
       return cornerMedallion(color, secondaryColor, w, seed);
-    case "waveform-bar":
-      return waveformBar(color, w, h, seed);
-    case "playback-row":
-      return playbackRow(color, w, h);
-    case "push-pin":
-      return pushPin(color, w, seed);
+    case "now-playing-panel":
+      return nowPlayingPanel(color, secondaryColor, w, h);
     case "route-field-block":
       return routeFieldBlock(color, w, h, seed);
     case "receipt-header":

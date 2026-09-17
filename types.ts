@@ -59,6 +59,8 @@ export interface SessionSettings {
   borderColor: string;
   bgColor: string;
   caption: string;
+  /** Second text line under the caption — only surfaced in the UI (as "Artist") and rendered when the theme's captionTreatment is "now-playing"; ignored by every other theme. */
+  subtitle: string;
   showDate: boolean;
   stickers: StickerInstance[];
   /** Random per-session seed for the procedural strip decoration — generated

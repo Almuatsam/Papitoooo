@@ -47,6 +47,7 @@ function defaultSettings(): SessionSettings {
     borderColor: "",
     bgColor: "",
     caption: "",
+    subtitle: "",
     showDate: true,
     stickers: [],
     // Fresh per session (mount + reset()); retake() preserves it by design

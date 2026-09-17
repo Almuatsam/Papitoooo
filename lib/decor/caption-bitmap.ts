@@ -13,12 +13,17 @@ export function renderCaptionBitmap(
   fontSize: number,
   treatment: string,
   lang: Lang,
+  /** "now-playing" only — the user-editable "artist" row under the title. Falls back to "Photo Booth" when blank. */
+  subtitleText?: string,
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
-  if (!ctx || !text.trim()) return canvas;
+  // "now-playing" always shows its title+subtitle row (falling back to a
+  // placeholder title) so the card never looks broken when the user hasn't
+  // typed a caption yet — every other treatment stays hidden when empty.
+  if (!ctx || (!text.trim() && treatment !== "now-playing")) return canvas;
 
   const family = readCssVar(fontVar) || "sans-serif";
   ctx.direction = lang === "ar" ? "rtl" : "ltr";
@@ -91,6 +96,24 @@ export function renderCaptionBitmap(
     ctx.strokeText(text, 0, fontSize * 0.05);
     ctx.fillText(text, 0, fontSize * 0.05);
     ctx.restore();
+  } else if (treatment === "now-playing") {
+    // Left-aligned "track title" (the user's own caption) + a small muted
+    // subtitle row directly below it — the title/artist block of a real
+    // now-playing screen. Anchored to the TOP of this band, not centered,
+    // since the now-playing-panel piece owns the rest of the band below it.
+    const padX = width * 0.08;
+    const titleY = height * 0.16;
+    const title = text.trim() || "New Memory";
+    ctx.direction = lang === "ar" ? "rtl" : "ltr";
+    ctx.textAlign = lang === "ar" ? "right" : "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = colors.ink;
+    ctx.font = `800 ${fontSize}px ${family}`;
+    const titleX = lang === "ar" ? width - padX : padX;
+    ctx.fillText(title, titleX, titleY, width - padX * 2);
+    ctx.fillStyle = colors.muted;
+    ctx.font = `500 ${fontSize * 0.55}px ${family}`;
+    ctx.fillText(subtitleText?.trim() || "Photo Booth", titleX, titleY + fontSize * 0.72);
   } else if (treatment === "airmail-tag") {
     ctx.font = `400 ${fontSize}px ${family}`;
     ctx.fillStyle = colors.ink;

@@ -72,9 +72,7 @@ export type StripPieceKind =
   // ---- signature: bespoke per-theme structural graphics --------------------
   | "barcode"
   | "corner-medallion"
-  | "waveform-bar"
-  | "playback-row"
-  | "push-pin"
+  | "now-playing-panel"
   | "route-field-block"
   | "receipt-header"
   | "receipt-footer"
@@ -139,7 +137,8 @@ export type CaptionTreatment =
   | "bubble"
   | "poster-arc"
   | "marker-headline"
-  | "airmail-tag";
+  | "airmail-tag"
+  | "now-playing";
 
 export interface StripBackground {
   kind: "solid" | "pattern" | "texture" | "pattern+texture";
