@@ -10,7 +10,7 @@ import {
 import { stripDimensions } from "@/lib/strip-renderer";
 import { svgToDataUrl } from "@/lib/decor/stickers";
 import { loadHtmlImage } from "@/lib/decor/load-image";
-import type { StickerInstance, StickerKind, StripThemeId } from "@/types";
+import type { LayoutId, StickerInstance, StickerKind, StripThemeId } from "@/types";
 
 export interface StickerCanvasHandle {
   addSticker: (kind: StickerKind, content: string) => void;
@@ -29,6 +29,7 @@ export interface SelectionBox {
 
 interface StickerCanvasProps {
   themeId: StripThemeId;
+  layoutId: LayoutId;
   backgroundUrl: string;
   stickers: StickerInstance[];
   onStickersChange: (next: StickerInstance[]) => void;
@@ -49,12 +50,12 @@ const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans
  * (used for export) never drifts from what's on screen.
  */
 export const StickerCanvas = forwardRef<StickerCanvasHandle, StickerCanvasProps>(
-  function StickerCanvas({ themeId, backgroundUrl, stickers, onStickersChange, onSelectionChange }, ref) {
+  function StickerCanvas({ themeId, layoutId, backgroundUrl, stickers, onStickersChange, onSelectionChange }, ref) {
     const wrapRef = useRef<HTMLDivElement>(null);
     const elRef = useRef<HTMLCanvasElement>(null);
     const fabricRef = useRef<import("fabric").Canvas | null>(null);
     const [ready, setReady] = useState(false);
-    const dims = stripDimensions(themeId);
+    const dims = stripDimensions(themeId, layoutId);
 
     // Create the canvas once per theme (dimensions depend on the theme).
     useEffect(() => {
@@ -121,9 +122,9 @@ export const StickerCanvas = forwardRef<StickerCanvasHandle, StickerCanvasProps>
         fabricRef.current = null;
         setReady(false);
       };
-      // Only recreate when the theme changes (its canvas dimensions differ).
+      // Only recreate when theme or layout changes (canvas dimensions depend on both).
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [themeId]);
+    }, [themeId, layoutId]);
 
     // Background image swaps whenever the render (filter/theme/caption/etc) changes.
     useEffect(() => {
@@ -153,20 +154,22 @@ export const StickerCanvas = forwardRef<StickerCanvasHandle, StickerCanvasProps>
           // Cascade placement so stickers added back-to-back land visibly
           // apart instead of stacking on top of each other.
           const cascade = stickers.length % 6;
+          const targetScale = kind === "emoji" ? 1 : 1.4;
           void addFabricSticker(canvas, {
             id: `sticker-${Date.now()}-${Math.round(Math.random() * 1e4)}`,
             kind,
             content,
             x: dims.width * 0.3 + cascade * 34 + (Math.random() * 20 - 10),
             y: dims.height * 0.18 + cascade * 46 + (Math.random() * 20 - 10),
-            scale: kind === "emoji" ? 1 : 1.4,
+            scale: targetScale,
             angle: 0,
             z: maxZ + 1,
-          }).then(() => {
+          }).then(async () => {
             const objects = canvas.getObjects().filter((o: unknown) => (o as { get: (k: string) => unknown }).get("stickerId"));
             const added = objects[objects.length - 1];
             if (added) {
               canvas.setActiveObject(added);
+              await popIn(canvas, added, targetScale);
               canvas.renderAll();
             }
             syncNow(canvas, onStickersChange);
@@ -296,6 +299,28 @@ async function addFabricSticker(canvas: import("fabric").Canvas, sticker: Sticke
   } catch {
     // skip stickers that fail to load rather than breaking the whole editor
   }
+}
+
+/** "Stickers popping into place": animates scale 0 -> target with a slight overshoot. Skipped under prefers-reduced-motion. */
+async function popIn(canvas: import("fabric").Canvas, obj: import("fabric").FabricObject, targetScale: number): Promise<void> {
+  const reducedMotion =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reducedMotion) return;
+  const { util } = await import("fabric");
+  obj.set({ scaleX: 0, scaleY: 0 });
+  return new Promise((resolve) => {
+    util.animate({
+      startValue: 0,
+      endValue: targetScale,
+      duration: 260,
+      easing: util.ease.easeOutBack,
+      onChange: (value: number) => {
+        obj.set({ scaleX: value, scaleY: value });
+        canvas.renderAll();
+      },
+      onComplete: () => resolve(),
+    });
+  });
 }
 
 function lockUniform(obj: import("fabric").FabricObject): void {

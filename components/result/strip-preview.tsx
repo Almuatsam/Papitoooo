@@ -5,10 +5,12 @@ import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
 import { StickerCanvas, type StickerCanvasHandle, type SelectionBox } from "@/components/result/sticker-canvas";
 import { StickerToolbar } from "@/components/result/sticker-toolbar";
-import type { StickerInstance, StripThemeId } from "@/types";
+import { stripDimensions } from "@/lib/strip-renderer";
+import type { LayoutId, StickerInstance, StripThemeId } from "@/types";
 
 interface StripPreviewProps {
   themeId: StripThemeId;
+  layoutId: LayoutId;
   url: string;
   rendering: boolean;
   error: boolean;
@@ -19,6 +21,7 @@ interface StripPreviewProps {
 
 export function StripPreview({
   themeId,
+  layoutId,
   url,
   rendering,
   error,
@@ -28,17 +31,28 @@ export function StripPreview({
 }: StripPreviewProps) {
   const { t } = useLanguage();
   const [selection, setSelection] = useState<SelectionBox | null>(null);
+  // Derived from the real layout geometry instead of a fixed Tailwind
+  // aspect ratio, so the loading/error placeholder matches whatever shape
+  // (tall column, grid, wide single photo, ...) is actually selected.
+  const { width, height } = stripDimensions(themeId, layoutId);
+  const placeholderStyle = { aspectRatio: `${width} / ${height}` };
 
   return (
     <div className="relative flex w-full max-w-[320px] flex-col items-center">
       {!url && !error && (
-        <div className="flex aspect-[1/3] w-full items-center justify-center border-3 border-dashed border-line">
+        <div
+          className="flex w-full items-center justify-center border-3 border-dashed border-line"
+          style={placeholderStyle}
+        >
           <Loader2 className="h-8 w-8 animate-spin text-muted" />
         </div>
       )}
 
       {error && (
-        <div className="flex aspect-[1/3] w-full items-center justify-center border-3 border-line p-4 text-center text-sm font-bold uppercase text-muted">
+        <div
+          className="flex w-full items-center justify-center border-3 border-line p-4 text-center text-sm font-bold uppercase text-muted"
+          style={placeholderStyle}
+        >
           {t.result.couldNotBuildStrip}
         </div>
       )}
@@ -48,6 +62,7 @@ export function StripPreview({
           <StickerCanvas
             ref={canvasRef}
             themeId={themeId}
+            layoutId={layoutId}
             backgroundUrl={url}
             stickers={stickers}
             onStickersChange={onStickersChange}

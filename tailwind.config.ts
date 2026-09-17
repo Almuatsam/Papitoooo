@@ -62,6 +62,12 @@ const config: Config = {
           "0%, 100%": { opacity: "0.35", transform: "translateX(-4%)" },
           "50%": { opacity: "0.9", transform: "translateX(4%)" },
         },
+        "sparkle-flicker": {
+          "0%, 20%, 100%": { opacity: "0.25" },
+          "10%": { opacity: "1" },
+          "60%": { opacity: "0.15" },
+          "70%": { opacity: "0.85" },
+        },
         flutter: {
           "0%, 100%": { transform: "rotate(-1.5deg)" },
           "50%": { transform: "rotate(1.5deg)" },
@@ -90,6 +96,7 @@ const config: Config = {
         "strip-drop": "strip-drop 0.7s cubic-bezier(0.22, 1, 0.36, 1)",
         "pulse-ring": "pulse-ring 1.6s ease-out infinite",
         shimmer: "shimmer 2.6s ease-in-out infinite",
+        "sparkle-flicker": "sparkle-flicker 1.8s steps(1) infinite",
         flutter: "flutter 3.2s ease-in-out infinite",
         marquee: "marquee 1.4s linear infinite",
         "pixel-blink": "pixel-blink 1.1s steps(1) infinite",

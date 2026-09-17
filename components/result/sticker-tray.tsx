@@ -1,27 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Smile } from "lucide-react";
-import { cn } from "@/lib/cn";
 import { useLanguage } from "@/hooks/use-language";
-import { STICKER_COLLECTIONS, stickersByCollection, svgToDataUrl } from "@/lib/decor/stickers";
-import type { StickerCollectionId } from "@/lib/decor/stickers";
+import { stickersByCollection, svgToDataUrl } from "@/lib/decor/stickers";
+import { mulberry32, seedFrom } from "@/lib/decor/strip-pieces";
+import { textureDataUrl } from "@/lib/decor/textures";
+import type { StripThemeId } from "@/types";
+
+/** Deterministic per-sticker rotation/scale so the tray reads as a scattered
+ * supply of physical pieces, not a uniform icon grid — stable across
+ * re-renders since it's seeded by the sticker's own id, not randomised live. */
+function trayJitter(id: string): { rotate: number; scale: number } {
+  const rand = mulberry32(seedFrom(id, "tray"));
+  return { rotate: (rand() * 2 - 1) * 10, scale: 0.9 + rand() * 0.22 };
+}
 
 interface StickerTrayProps {
+  /** Every theme owns exactly one dedicated sticker pack — no tabs needed. */
+  themeId: StripThemeId;
   onAddSvg: (svg: string) => void;
   onAddEmoji: (emoji: string) => void;
 }
 
-export function StickerTray({ onAddSvg, onAddEmoji }: StickerTrayProps) {
+export function StickerTray({ themeId, onAddSvg, onAddEmoji }: StickerTrayProps) {
   const { t } = useLanguage();
-  const [collection, setCollection] = useState<StickerCollectionId>("y2k");
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiValue, setEmojiValue] = useState("");
   const emojiInputRef = useRef<HTMLInputElement>(null);
+  // Canvas-drawn, so only ever computed client-side (never during SSR).
+  const [trayTexture, setTrayTexture] = useState("");
+  const stickers = useMemo(() => stickersByCollection(themeId), [themeId]);
 
   useEffect(() => {
     if (emojiOpen) emojiInputRef.current?.focus();
   }, [emojiOpen]);
+
+  useEffect(() => {
+    setTrayTexture(textureDataUrl("paper", "#ffffff", "#ffffff", 2));
+  }, []);
 
   const commitEmoji = () => {
     const value = emojiValue.trim();
@@ -32,23 +49,7 @@ export function StickerTray({ onAddSvg, onAddEmoji }: StickerTrayProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="no-scrollbar flex flex-1 gap-1.5 overflow-x-auto py-1">
-          {STICKER_COLLECTIONS.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setCollection(c.id)}
-              className={cn(
-                "facet-sm shrink-0 border-2 border-line px-3 py-1 text-xs font-bold uppercase tracking-wide",
-                collection === c.id ? "bg-accent text-white" : "bg-panel text-ink hover:bg-white/10",
-              )}
-            >
-              {t.stickerCollections[c.id]}
-            </button>
-          ))}
-        </div>
-
+      <div className="flex items-center justify-end gap-2">
         {!emojiOpen ? (
           <button
             type="button"
@@ -77,19 +78,34 @@ export function StickerTray({ onAddSvg, onAddEmoji }: StickerTrayProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-5 gap-2 sm:grid-cols-6">
-        {stickersByCollection(collection).map((sticker) => (
-          <button
-            key={sticker.id}
-            type="button"
-            title={sticker.label}
-            onClick={() => onAddSvg(sticker.svg)}
-            className="facet-sm flex aspect-square items-center justify-center border-2 border-line/25 bg-panel p-1.5 transition-transform hover:-translate-y-0.5 hover:border-accent active:scale-95"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG sticker artwork, not a photo */}
-            <img src={svgToDataUrl(sticker.svg)} alt={sticker.label} className="h-full w-full" />
-          </button>
-        ))}
+      {/* "Supply tray" surface: faint paper grain + a grid that lets each
+          piece tilt/scale past its own cell instead of sitting in a uniform
+          icon-grid box. The button (the actual touch target) stays a
+          consistent size; only the inner artwork wrapper transforms. */}
+      <div
+        className="facet-sm grid grid-cols-5 gap-2 overflow-visible border-2 border-line/20 bg-panel/60 p-2 sm:grid-cols-6"
+        style={trayTexture ? { backgroundImage: `url(${trayTexture})` } : undefined}
+      >
+        {stickers.map((sticker) => {
+          const jitter = trayJitter(sticker.id);
+          return (
+            <button
+              key={sticker.id}
+              type="button"
+              title={sticker.label}
+              onClick={() => onAddSvg(sticker.svg)}
+              className="relative flex aspect-square items-center justify-center overflow-visible transition-transform active:scale-90"
+            >
+              <span
+                className="absolute inset-0 flex items-center justify-center transition-transform hover:scale-110"
+                style={{ transform: `rotate(${jitter.rotate.toFixed(1)}deg) scale(${jitter.scale.toFixed(2)})` }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG sticker artwork, not a photo */}
+                <img src={svgToDataUrl(sticker.svg)} alt={sticker.label} className="h-full w-full drop-shadow-md" />
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

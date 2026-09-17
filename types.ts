@@ -12,12 +12,25 @@ export type FilterId =
   | "contrast";
 
 export type StripThemeId =
-  | "classic"
-  | "y2k-camera"
-  | "glitter-scrapbook"
-  | "pop-magazine"
-  | "retro-internet"
-  | "cute-booth";
+  | "festival-poster"
+  | "streaming-card"
+  | "arcade-corkboard"
+  | "doodle-diary"
+  | "boarding-pass"
+  | "receipt"
+  | "par-avion";
+
+/** How many photos a strip has and how they're arranged — independent of theme. */
+export type LayoutId =
+  | "strip-3"
+  | "strip-4"
+  | "grid-6"
+  | "single-portrait"
+  | "single-landscape"
+  | "triple-horizontal"
+  | "asymmetric-3"
+  | "asymmetric-4"
+  | "double-strip-4";
 
 /** A single captured frame, stored unfiltered as a JPEG data URL. */
 export type Frame = string;
@@ -41,11 +54,17 @@ export interface StickerInstance {
 export interface SessionSettings {
   filterId: FilterId;
   themeId: StripThemeId;
+  /** Chosen before capture starts — determines shot count, so it can't change mid/post-session. */
+  layoutId: LayoutId;
   borderColor: string;
   bgColor: string;
   caption: string;
   showDate: boolean;
   stickers: StickerInstance[];
+  /** Random per-session seed for the procedural strip decoration — generated
+   * once per capture session so a strip looks different session to session
+   * but stays pixel-identical between its own preview and its own download. */
+  decorSeed: number;
 }
 
 export type CameraErrorKind =

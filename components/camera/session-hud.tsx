@@ -1,23 +1,24 @@
 "use client";
 
 import { cn } from "@/lib/cn";
-import { PHOTO_COUNT } from "@/lib/constants";
 
 interface SessionHudProps {
   filterLabel: string;
   /** Number of photos already captured. */
   captured: number;
+  /** Total shots this session takes — derived from the chosen layout. */
+  shotCount: number;
   running: boolean;
 }
 
-export function SessionHud({ filterLabel, captured, running }: SessionHudProps) {
+export function SessionHud({ filterLabel, captured, shotCount, running }: SessionHudProps) {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-3">
       <span className="facet-sm border border-accent/60 bg-black/60 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
         {filterLabel}
       </span>
       <div className="flex items-center gap-1.5">
-        {Array.from({ length: PHOTO_COUNT }).map((_, i) => (
+        {Array.from({ length: shotCount }).map((_, i) => (
           <span
             key={i}
             className={cn(
@@ -28,7 +29,7 @@ export function SessionHud({ filterLabel, captured, running }: SessionHudProps) 
         ))}
         {running && (
           <span className="facet-sm ms-1 border border-accent/60 bg-black/60 px-2 py-1 text-xs font-bold uppercase tracking-widest text-white">
-            {Math.min(captured + 1, PHOTO_COUNT)} / {PHOTO_COUNT}
+            {Math.min(captured + 1, shotCount)} / {shotCount}
           </span>
         )}
       </div>

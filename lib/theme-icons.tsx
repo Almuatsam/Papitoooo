@@ -1,12 +1,13 @@
-import { Film, Camera, Sparkles, Zap, Gamepad2, Heart, type LucideIcon } from "lucide-react";
+import { Flag, Gamepad2, Mail, Music2, PenLine, Plane, Receipt as ReceiptIcon, type LucideIcon } from "lucide-react";
 import type { StripThemeId } from "@/types";
 
-/** One icon per strip theme, used in the theme picker instead of emoji. */
+/** One icon per strip theme — used by the compact header ThemeSwitcher (the customizer's own theme picker uses full visual previews instead, see components/result/theme-browser.tsx). */
 export const THEME_ICONS: Record<StripThemeId, LucideIcon> = {
-  classic: Film,
-  "y2k-camera": Camera,
-  "glitter-scrapbook": Sparkles,
-  "pop-magazine": Zap,
-  "retro-internet": Gamepad2,
-  "cute-booth": Heart,
+  "festival-poster": Flag,
+  "streaming-card": Music2,
+  "arcade-corkboard": Gamepad2,
+  "doodle-diary": PenLine,
+  "boarding-pass": Plane,
+  receipt: ReceiptIcon,
+  "par-avion": Mail,
 };

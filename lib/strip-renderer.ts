@@ -1,17 +1,23 @@
-import { PHOTO_WIDTH, PHOTO_HEIGHT, PHOTO_COUNT } from "@/lib/constants";
 import { filterCss } from "@/lib/filters";
-import { getTheme, type ThemeColors } from "@/lib/themes";
+import { getTheme, type PieceEdge, type StripPiecePlacement, type ThemeColors } from "@/lib/themes";
+import { getLayout, type Box } from "@/lib/layouts";
 import { paintPattern } from "@/lib/decor/patterns";
 import { paintTexture } from "@/lib/decor/textures";
-import { readCssVar } from "@/lib/decor/theme-vars";
 import { svgToDataUrl } from "@/lib/decor/stickers";
 import { loadHtmlImage } from "@/lib/decor/load-image";
-import type { FilterId, Frame, Lang, StickerInstance, StripThemeId } from "@/types";
+import { roundRectPath } from "@/lib/decor/canvas-utils";
+import { renderCaptionBitmap } from "@/lib/decor/caption-bitmap";
+import { drawOuterFrame } from "@/lib/decor/outer-frame";
+import { applyDoublePrint, applyTilt } from "@/lib/decor/strip-postprocess";
+import { renderPiece, seedFrom, mulberry32 } from "@/lib/decor/strip-pieces";
+import { jitterPiece, selectDecorPieces } from "@/lib/decor/decoration-generator";
+import type { FilterId, Frame, Lang, LayoutId, StickerInstance, StripThemeId } from "@/types";
 
 export interface RenderStripInput {
   frames: Frame[];
   filterId: FilterId;
   themeId: StripThemeId;
+  layoutId: LayoutId;
   /** "" = use the theme default. */
   borderColor: string;
   /** "" = use the theme default. */
@@ -22,21 +28,24 @@ export interface RenderStripInput {
   lang?: Lang;
   /** Export multiplier. 1 for preview, higher for download. */
   scale?: number;
+  /** Per-session seed driving which decoration pieces get selected/jittered — see lib/decor/decoration-generator.ts. */
+  decorSeed?: number;
+  /**
+   * True only for the actual download render. The interactive sticker
+   * editor and its background preview are always sized/rendered as a
+   * single strip (see lib/layouts/double-strip-4.ts) — layout-level
+   * double-print duplication only happens at export time, otherwise the
+   * editor canvas (sized via stripDimensions) and the doubled preview
+   * image would disagree on width.
+   */
+  finalize?: boolean;
 }
 
 /** Alternating tilt for the "stuck onto a page" scrapbook look. Deterministic. */
 const ROTATION_JITTER = [-3, 2.4, -2.2, 3.2];
 
-function roundRectPath(ctx: CanvasRenderingContext2D, w: number, h: number, r: number): void {
-  const radius = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(radius, 0);
-  ctx.arcTo(w, 0, w, h, radius);
-  ctx.arcTo(w, h, 0, h, radius);
-  ctx.arcTo(0, h, 0, 0, radius);
-  ctx.arcTo(0, 0, w, 0, radius);
-  ctx.closePath();
-}
+/** Gap (unscaled px) between the two copies in a double-print layout. */
+const DOUBLE_PRINT_GAP = 24;
 
 /** Solid placeholder used if a captured frame fails to decode, so one bad
  * photo degrades gracefully instead of failing the whole strip. */
@@ -103,115 +112,51 @@ async function prepFrame(
   return canvas;
 }
 
-/** Small translucent "washi tape" rect, pre-rotated on its own canvas so Fabric can place it as one image. */
-function tapeStrip(color: string, w = 70, h = 24): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return canvas;
-  ctx.fillStyle = color;
-  ctx.globalAlpha = 0.68;
-  ctx.fillRect(0, 0, w, h);
-  ctx.globalAlpha = 1;
-  // torn-edge notches
-  ctx.fillStyle = "rgba(255,255,255,0.35)";
-  for (let x = 0; x < w; x += 6) {
-    ctx.fillRect(x, 0, 2, 2);
-    ctx.fillRect(x, h - 2, 2, 2);
-  }
-  return canvas;
+/** Resolves a theme colour slot to its concrete hex value. */
+function pieceColor(slot: StripPiecePlacement["color"] | undefined, colors: ThemeColors, paper: string): string {
+  if (!slot) return colors.ink;
+  if (slot === "paper") return paper;
+  return colors[slot];
 }
 
-/** Renders the caption + optional date as a single bitmap so Arabic/RTL text shapes correctly. */
-function renderCaptionBitmap(
-  width: number,
-  height: number,
-  text: string,
-  colors: ThemeColors,
-  fontVar: string,
-  fontSize: number,
-  treatment: string,
-  lang: Lang,
-): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx || !text.trim()) return canvas;
-
-  const family = readCssVar(fontVar) || "sans-serif";
-  ctx.direction = lang === "ar" ? "rtl" : "ltr";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const cx = width / 2;
-  const cy = height / 2;
-
-  if (treatment === "cover-line") {
-    ctx.fillStyle = colors.accent;
-    const barH = fontSize * 1.5;
-    ctx.fillRect(0, cy - barH / 2, width, barH);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `900 ${fontSize}px ${family}`;
-    ctx.fillText(text, cx, cy + fontSize * 0.04);
-  } else if (treatment === "bubble") {
-    const padX = fontSize * 0.9;
-    ctx.font = `700 ${fontSize}px ${family}`;
-    const metrics = ctx.measureText(text);
-    const bw = Math.min(width - 8, metrics.width + padX * 2);
-    const bh = fontSize * 1.9;
-    ctx.fillStyle = colors.accent;
-    roundRectPath(ctx, bw, bh, bh / 2);
-    ctx.save();
-    ctx.translate(cx - bw / 2, cy - bh / 2);
-    roundRectPath(ctx, bw, bh, bh / 2);
-    ctx.fill();
-    ctx.restore();
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(text, cx, cy + fontSize * 0.04);
-  } else if (treatment === "stamp") {
-    ctx.font = `700 ${fontSize}px ${family}`;
-    ctx.fillStyle = colors.accent2;
-    ctx.strokeStyle = colors.ink;
-    ctx.lineWidth = 1;
-    const metrics = ctx.measureText(text);
-    const bw = metrics.width + fontSize * 1.4;
-    const bh = fontSize * 1.7;
-    ctx.strokeRect(cx - bw / 2, cy - bh / 2, bw, bh);
-    ctx.fillText(text, cx, cy + fontSize * 0.04);
-  } else if (treatment === "handwritten") {
-    ctx.font = `400 ${fontSize}px ${family}`;
-    ctx.fillStyle = colors.ink;
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(-0.03);
-    ctx.fillText(text, 0, fontSize * 0.05);
-    ctx.restore();
-  } else if (treatment === "pixel") {
-    ctx.font = `400 ${fontSize}px ${family}`;
-    ctx.fillStyle = colors.ink;
-    ctx.fillText(text, cx, cy + fontSize * 0.04);
-  } else {
-    ctx.font = `400 ${fontSize}px ${family}`;
-    ctx.fillStyle = colors.muted;
-    ctx.fillText(text, cx, cy + fontSize * 0.04);
+/** Resolves a piece's edge/corner to an (x, y) anchor point within its bounding box. */
+function edgePoint(box: Box, edge: PieceEdge): { x: number; y: number } {
+  const { left, top, width, height } = box;
+  switch (edge) {
+    case "tl":
+      return { x: left, y: top };
+    case "tr":
+      return { x: left + width, y: top };
+    case "bl":
+      return { x: left, y: top + height };
+    case "br":
+      return { x: left + width, y: top + height };
+    case "top":
+      return { x: left + width / 2, y: top };
+    case "bottom":
+      return { x: left + width / 2, y: top + height };
+    case "left":
+      return { x: left, y: top + height / 2 };
+    case "right":
+      return { x: left + width, y: top + height / 2 };
+    default:
+      return { x: left + width / 2, y: top + height / 2 };
   }
-
-  return canvas;
 }
 
 /**
- * Composites the four photos into one themed film-strip image and returns a
- * PNG data URL. Single source of truth for both the live editor preview and
- * the download (via `scale`). Every colour and font comes from the live
- * theme CSS custom properties (see lib/decor/theme-vars.ts) so the export
- * always matches whatever is on screen.
+ * Composites the captured photos into one themed film-strip image and
+ * returns a PNG data URL. Single source of truth for both the live editor
+ * preview and the download (via `scale`). Arrangement (how many photos,
+ * arranged how) comes from `layoutId` (lib/layouts/); decoration/palette
+ * comes from `themeId` (lib/themes/) — the two stay independent axes.
  */
 export async function renderStrip(input: RenderStripInput): Promise<string> {
   const {
     frames,
     filterId,
     themeId,
+    layoutId,
     borderColor,
     bgColor,
     caption,
@@ -219,6 +164,8 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     stickers = [],
     lang = "en",
     scale = 1,
+    decorSeed = 0,
+    finalize = false,
   } = input;
 
   if (document.fonts?.ready) await document.fonts.ready;
@@ -234,11 +181,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
   const paper = bgColor || colors.paper;
   const keyline = borderColor || colors.ink;
 
-  const photoW = PHOTO_WIDTH;
-  const photoH = PHOTO_HEIGHT;
-  const contentLeft = strip.outerPad;
-  const canvasW = photoW + contentLeft * 2;
-  const canvasH = strip.outerPad + PHOTO_COUNT * photoH + (PHOTO_COUNT - 1) * strip.gap + strip.bottomPad;
+  const { canvasW, canvasH, boxes } = getLayout(layoutId).computeLayout(theme);
 
   const el = document.createElement("canvas");
   const fCanvas = new StaticCanvas(el, { width: canvasW, height: canvasH, enableRetinaScaling: false });
@@ -314,104 +257,127 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     }
 
     // ---- outer frame ---------------------------------------------------
-    if (strip.outerFrame.style === "solid") {
-      fCanvas.add(
-        new Rect({
-          left: strip.outerFrame.width / 2,
-          top: strip.outerFrame.width / 2,
-          width: canvasW - strip.outerFrame.width,
-          height: canvasH - strip.outerFrame.width,
-          fill: "transparent",
-          stroke: keyline,
-          strokeWidth: strip.outerFrame.width,
-          selectable: false,
-          evented: false,
-        }),
-      );
-    } else if (strip.outerFrame.style === "dashed") {
-      fCanvas.add(
-        new Rect({
-          left: strip.outerFrame.width,
-          top: strip.outerFrame.width,
-          width: canvasW - strip.outerFrame.width * 2,
-          height: canvasH - strip.outerFrame.width * 2,
-          fill: "transparent",
-          stroke: keyline,
-          strokeWidth: strip.outerFrame.width * 0.6,
-          strokeDashArray: [strip.outerFrame.width * 1.6, strip.outerFrame.width],
-          selectable: false,
-          evented: false,
-        }),
-      );
-    } else if (strip.outerFrame.style === "chrome") {
-      const w = strip.outerFrame.width;
-      fCanvas.add(
-        new Rect({
-          left: w / 2,
-          top: w / 2,
-          width: canvasW - w,
-          height: canvasH - w,
-          fill: "transparent",
-          stroke: "#8b9096",
-          strokeWidth: w,
-          selectable: false,
-          evented: false,
-        }),
-      );
-      fCanvas.add(
-        new Rect({
-          left: w * 0.85,
-          top: w * 0.85,
-          width: canvasW - w * 1.7,
-          height: canvasH - w * 1.7,
-          fill: "transparent",
-          stroke: "#f4f6f8",
-          strokeWidth: Math.max(1.5, w * 0.22),
-          selectable: false,
-          evented: false,
-        }),
-      );
+    drawOuterFrame(strip, canvasW, canvasH, keyline, paper, colors, { fCanvas, Rect, Circle, FabricImage });
+
+    // ---- decoration pieces: select + jitter, then frame-anchored back layer
+    // Each theme offers a pool of candidate pieces (lib/themes/); which
+    // ones actually appear, and their fine angle/scale/offset, is seed-
+    // selected here — same session seed always reproduces the same
+    // composition (pixel-identical preview/export), different sessions get
+    // a different one ("looks slightly different every time"). Required
+    // pieces (a theme's signature elements) always draw regardless of seed.
+    const poolSeed = seedFrom(themeId, decorSeed, "pool");
+    const selected = selectDecorPieces(strip.piecePool, strip.pieceCount, poolSeed);
+    // Required pieces (a theme's signature/structural elements — a receipt
+    // header, a route-field table) are precisely authored and meant to read
+    // as intentional, not "handmade" — jitter's random rotation/offset is
+    // for optional flourish pieces only.
+    const piecesWithIndex = selected.map((piece, index) => ({
+      piece: piece.required ? piece : jitterPiece(piece, seedFrom(themeId, decorSeed, "jitter", index)),
+      index,
+    }));
+    const framePieces = piecesWithIndex.filter((p) => p.piece.anchor === "frame");
+    const photoPieces = piecesWithIndex.filter((p) => p.piece.anchor !== "frame");
+    // Bottom bound stops just above the caption band so frame-anchored
+    // pieces never fight the caption for space.
+    const frameMargin = strip.outerPad * 0.4;
+    const frameBox: Box = {
+      left: frameMargin,
+      top: frameMargin,
+      width: canvasW - frameMargin * 2,
+      height: canvasH - strip.bottomPad - frameMargin * 2,
+    };
+
+    // Base width "asset-svg" pieces scale from — natural aspect is preserved,
+    // "scale" multiplies this the same way it multiplies DEFAULT_SIZE for
+    // every other piece kind (see lib/decor/strip-pieces.ts).
+    const ASSET_SVG_BASE_WIDTH = 140;
+
+    async function addPiece(piece: StripPiecePlacement, index: number, box: Box, source?: HTMLCanvasElement): Promise<void> {
+      try {
+        const anchorPoint = edgePoint(box, piece.edge);
+        const x = anchorPoint.x + (piece.offset?.x ?? 0);
+        const y = anchorPoint.y + (piece.offset?.y ?? 0);
+
+        if (piece.kind === "asset-svg" && piece.assetSvg) {
+          const img = await loadHtmlImage(svgToDataUrl(piece.assetSvg));
+          const naturalW = img.naturalWidth || img.width || ASSET_SVG_BASE_WIDTH;
+          const naturalH = img.naturalHeight || img.height || ASSET_SVG_BASE_WIDTH;
+          let source2d: HTMLImageElement | HTMLCanvasElement = img;
+          if (piece.assetFilter) {
+            const raster = document.createElement("canvas");
+            raster.width = naturalW;
+            raster.height = naturalH;
+            const rctx = raster.getContext("2d");
+            if (rctx) {
+              rctx.filter = piece.assetFilter;
+              rctx.drawImage(img, 0, 0, naturalW, naturalH);
+              source2d = raster;
+            }
+          }
+          const targetW = ASSET_SVG_BASE_WIDTH * (piece.scale ?? 1);
+          const s = targetW / naturalW;
+          fCanvas.add(
+            new FabricImage(source2d, {
+              left: x,
+              top: y,
+              originX: "center",
+              originY: "center",
+              angle: piece.angle,
+              opacity: piece.opacity ?? 1,
+              scaleX: s,
+              scaleY: s,
+              selectable: false,
+              evented: false,
+            }),
+          );
+          return;
+        }
+
+        const color = pieceColor(piece.color, colors, paper);
+        const secondaryColor = pieceColor(piece.secondaryColor, colors, paper);
+        const seed = seedFrom(themeId, decorSeed, piece.kind, String(piece.anchor), piece.edge, index);
+        const canvas = renderPiece(piece.kind, piece.material, color, piece.scale ?? 1, seed, {
+          source,
+          secondaryColor,
+        });
+        fCanvas.add(
+          new FabricImage(canvas, {
+            left: x,
+            top: y,
+            originX: "center",
+            originY: "center",
+            angle: piece.angle,
+            opacity: piece.opacity ?? 1,
+            selectable: false,
+            evented: false,
+          }),
+        );
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("[strip-renderer] decoration piece failed, skipping", err);
+      }
     }
 
-    // ---- corner decoration behind photos -------------------------------
-    try {
-      if (strip.decoration === "checker-corners" || strip.decoration === "halftone-corners") {
-        const size = Math.max(30, Math.min(strip.outerPad * 1.7, 46));
-        const corners: Array<[number, number]> = [
-          [6, 6],
-          [canvasW - size - 6, 6],
-          [6, canvasH - size - 6],
-          [canvasW - size - 6, canvasH - size - 6],
-        ];
-        for (const [x, y] of corners) {
-          const tile = document.createElement("canvas");
-          tile.width = size;
-          tile.height = size;
-          const tctx = tile.getContext("2d");
-          if (!tctx) continue;
-          if (strip.decoration === "checker-corners") {
-            paintPattern(tctx, { x: 0, y: 0, w: size, h: size }, "checker", paper, colors.ink, 1.1);
-          } else {
-            tctx.fillStyle = paper;
-            tctx.fillRect(0, 0, size, size);
-            paintTexture(tctx, { x: 0, y: 0, w: size, h: size }, "halftone", colors.ink, colors.accent, 2.2);
-          }
-          fCanvas.add(new FabricImage(tile, { left: x, top: y, selectable: false, evented: false }));
-        }
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("[strip-renderer] corner decoration failed, skipping", err);
+    for (const { piece, index } of framePieces) {
+      if (piece.layer === "back") await addPiece(piece, index, frameBox);
     }
 
     // ---- photos ----------------------------------------------------------
-    for (let i = 0; i < PHOTO_COUNT; i++) {
-      const top = strip.outerPad + i * (photoH + strip.gap);
+    // `boxes` (from lib/layouts/) replaces the old fixed vertical-stack
+    // formula — every layout (single photo, grid, asymmetric, ...) is just
+    // a different box list over the same drawing order.
+    for (let i = 0; i < boxes.length; i++) {
+      const box = boxes[i];
       const src = frames[i] ?? frames[frames.length - 1];
-      const prepped = await prepFrame(src, photoW, photoH, strip.radius, css);
+      const prepped = await prepFrame(src, box.width, box.height, strip.radius, css);
       const angle = strip.photoRotationJitter ? ROTATION_JITTER[i % ROTATION_JITTER.length] : 0;
-      const cx = contentLeft + photoW / 2;
-      const cy = top + photoH / 2;
+      const cx = box.left + box.width / 2;
+      const cy = box.top + box.height / 2;
+
+      for (const { piece, index } of photoPieces) {
+        if (piece.anchor === i && piece.layer === "back") await addPiece(piece, index, box, prepped);
+      }
 
       const fabricImg = new FabricImage(prepped, {
         left: cx,
@@ -432,8 +398,8 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
             originX: "center",
             originY: "center",
             angle,
-            width: photoW,
-            height: photoH,
+            width: box.width,
+            height: box.height,
             rx: strip.radius,
             ry: strip.radius,
             fill: "transparent",
@@ -445,35 +411,14 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
         );
       }
 
-      if (strip.decoration === "tape") {
-        const tapeColor = i % 2 === 0 ? colors.accent : colors.accent2;
-        const t1 = tapeStrip(tapeColor);
-        fCanvas.add(
-          new FabricImage(t1, {
-            left: cx - photoW / 2 + 14,
-            top: top - 6,
-            originX: "center",
-            originY: "center",
-            angle: -18,
-            selectable: false,
-            evented: false,
-          }),
-        );
-        if (i % 2 === 0) {
-          const t2 = tapeStrip(colors.accent2, 56, 20);
-          fCanvas.add(
-            new FabricImage(t2, {
-              left: cx + photoW / 2 - 18,
-              top: top + photoH - 4,
-              originX: "center",
-              originY: "center",
-              angle: 16,
-              selectable: false,
-              evented: false,
-            }),
-          );
-        }
+      for (const { piece, index } of photoPieces) {
+        if (piece.anchor === i && piece.layer === "front") await addPiece(piece, index, box, prepped);
       }
+    }
+
+    // ---- decoration pieces: frame-anchored front layer -------------------
+    for (const { piece, index } of framePieces) {
+      if (piece.layer === "front") await addPiece(piece, index, frameBox);
     }
 
     // ---- stickers (user-placed) ----------------------------------------
@@ -559,7 +504,22 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     }
 
     fCanvas.renderAll();
-    return fCanvas.toDataURL({ format: "png", multiplier: scale, enableRetinaScaling: false });
+    let dataUrl = fCanvas.toDataURL({ format: "png", multiplier: scale, enableRetinaScaling: false });
+
+    // ---- postprocessing: theme tilt, then layout double-print -----------
+    // Both operate on the fully-composited raster (photos + pieces +
+    // stickers + caption already baked in) so layout and theme stay
+    // independent, composable axes.
+    if (strip.tiltDeg) {
+      const jitterSeed = seedFrom(themeId, decorSeed, "tilt");
+      const jitter = (mulberry32(jitterSeed)() * 2 - 1) * 2;
+      dataUrl = await applyTilt(dataUrl, strip.tiltDeg + jitter);
+    }
+    if (finalize && layoutId === "double-strip-4") {
+      dataUrl = await applyDoublePrint(dataUrl, DOUBLE_PRINT_GAP * scale);
+    }
+
+    return dataUrl;
   } finally {
     // Never let cleanup mask a successful render: dispose() is async in
     // Fabric v6, and a rejection here must not replace the value/error the
@@ -573,11 +533,19 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
   }
 }
 
-/** Logical (unscaled) strip dimensions for a theme — used to size the interactive editor canvas. */
-export function stripDimensions(themeId: StripThemeId): { width: number; height: number } {
-  const strip = getTheme(themeId).strip;
-  return {
-    width: PHOTO_WIDTH + strip.outerPad * 2,
-    height: strip.outerPad + PHOTO_COUNT * PHOTO_HEIGHT + (PHOTO_COUNT - 1) * strip.gap + strip.bottomPad,
-  };
+/** Logical (unscaled) strip dimensions for a theme + layout — used to size the interactive editor canvas. */
+export function stripDimensions(themeId: StripThemeId, layoutId: LayoutId): { width: number; height: number } {
+  const theme = getTheme(themeId);
+  const { canvasW, canvasH } = getLayout(layoutId).computeLayout(theme);
+  if (theme.strip.tiltDeg) {
+    // Must match applyTilt()'s own padding exactly: a square whose side is
+    // the untilted strip's diagonal is big enough to hold it at ANY
+    // rotation angle, which is why this doesn't need the actual (jittered)
+    // angle to compute — same square, regardless of angle. Getting this
+    // out of sync with applyTilt() is exactly what made the editor frame
+    // show a cropped, zoomed-in corner instead of the whole tilted strip.
+    const diag = Math.ceil(Math.sqrt(canvasW * canvasW + canvasH * canvasH));
+    return { width: diag, height: diag };
+  }
+  return { width: canvasW, height: canvasH };
 }

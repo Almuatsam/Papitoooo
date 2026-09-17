@@ -9,19 +9,20 @@ import { Customizer } from "@/components/result/customizer";
 import { ResultActions } from "@/components/result/result-actions";
 import { ThemeChrome } from "@/components/theme/theme-decor";
 import type { StickerCanvasHandle } from "@/components/result/sticker-canvas";
-import { PHOTO_COUNT } from "@/lib/constants";
+import { getLayout } from "@/lib/layouts";
 
 export function ResultScreen() {
   const { frames, settings, updateSettings, retake, reset, goHome } = useSession();
   const { t, lang } = useLanguage();
   const { previewUrl, rendering, error, renderFullRes } = useStripRender(frames, settings, lang);
   const canvasRef = useRef<StickerCanvasHandle>(null);
+  const shotCount = getLayout(settings.layoutId).photoCount;
 
   useEffect(() => {
-    if (frames.length < PHOTO_COUNT) goHome();
-  }, [frames.length, goHome]);
+    if (frames.length < shotCount) goHome();
+  }, [frames.length, shotCount, goHome]);
 
-  if (frames.length < PHOTO_COUNT) return null;
+  if (frames.length < shotCount) return null;
 
   return (
     <div className="relative mx-auto w-full max-w-5xl flex-1 px-4 py-6">
@@ -36,6 +37,7 @@ export function ResultScreen() {
         <div className="flex justify-center lg:sticky lg:top-6 lg:w-[340px] lg:shrink-0">
           <StripPreview
             themeId={settings.themeId}
+            layoutId={settings.layoutId}
             url={previewUrl}
             rendering={rendering}
             error={error}

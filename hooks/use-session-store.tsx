@@ -9,30 +9,49 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Frame, SessionSettings, StripThemeId, View } from "@/types";
+import type { Frame, LayoutId, SessionSettings, StripThemeId, View } from "@/types";
 
 const THEME_STORAGE_KEY = "photobooth.themeId";
+const LAYOUT_STORAGE_KEY = "photobooth.layoutId";
 
-const DEFAULT_THEME: StripThemeId = "y2k-camera";
+const DEFAULT_THEME: StripThemeId = "boarding-pass";
+const DEFAULT_LAYOUT: LayoutId = "strip-4";
 
 const VALID_THEMES: StripThemeId[] = [
-  "classic",
-  "y2k-camera",
-  "glitter-scrapbook",
-  "pop-magazine",
-  "retro-internet",
-  "cute-booth",
+  "festival-poster",
+  "streaming-card",
+  "arcade-corkboard",
+  "doodle-diary",
+  "boarding-pass",
+  "receipt",
+  "par-avion",
+];
+
+const VALID_LAYOUTS: LayoutId[] = [
+  "strip-3",
+  "strip-4",
+  "grid-6",
+  "single-portrait",
+  "single-landscape",
+  "triple-horizontal",
+  "asymmetric-3",
+  "asymmetric-4",
+  "double-strip-4",
 ];
 
 function defaultSettings(): SessionSettings {
   return {
     filterId: "natural",
     themeId: DEFAULT_THEME,
+    layoutId: DEFAULT_LAYOUT,
     borderColor: "",
     bgColor: "",
     caption: "",
     showDate: true,
     stickers: [],
+    // Fresh per session (mount + reset()); retake() preserves it by design
+    // so the decoration composition stays put across a retake.
+    decorSeed: Math.random(),
   };
 }
 
@@ -46,9 +65,11 @@ interface SessionStore {
   finishSession: (frames: Frame[]) => void;
   updateSettings: (patch: Partial<SessionSettings>) => void;
   setTheme: (themeId: StripThemeId) => void;
+  /** Only meaningful before capture starts — it determines shot count. */
+  setLayout: (layoutId: LayoutId) => void;
   /** Keep settings, drop frames, back to camera for another take. */
   retake: () => void;
-  /** Full reset back to home (keeps the chosen theme). */
+  /** Full reset back to home (keeps the chosen theme + layout). */
   reset: () => void;
 }
 
@@ -59,20 +80,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [frames, setFrames] = useState<Frame[]>([]);
   const [settings, setSettings] = useState<SessionSettings>(defaultSettings);
 
-  // Apply a previously-chosen vibe after mount only, so the very first
-  // client render always matches the server-rendered default (no hydration
-  // mismatch), then persist future changes.
+  // Apply a previously-chosen vibe/layout after mount only, so the very
+  // first client render always matches the server-rendered default (no
+  // hydration mismatch), then persist future changes.
   const [hydratedTheme, setHydratedTheme] = useState(false);
   useEffect(() => {
     if (hydratedTheme) return;
     setHydratedTheme(true);
     try {
-      const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as StripThemeId | null;
-      if (stored && VALID_THEMES.includes(stored)) {
-        setSettings((prev) => ({ ...prev, themeId: stored }));
-      }
+      const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY) as StripThemeId | null;
+      const storedLayout = window.localStorage.getItem(LAYOUT_STORAGE_KEY) as LayoutId | null;
+      setSettings((prev) => ({
+        ...prev,
+        themeId: storedTheme && VALID_THEMES.includes(storedTheme) ? storedTheme : prev.themeId,
+        layoutId: storedLayout && VALID_LAYOUTS.includes(storedLayout) ? storedLayout : prev.layoutId,
+      }));
     } catch {
-      // localStorage unavailable — fall back to the default theme.
+      // localStorage unavailable — fall back to the defaults.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -81,10 +105,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (!hydratedTheme) return;
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, settings.themeId);
+      window.localStorage.setItem(LAYOUT_STORAGE_KEY, settings.layoutId);
     } catch {
-      // localStorage unavailable (private mode etc.) — theme just won't persist.
+      // localStorage unavailable (private mode etc.) — just won't persist.
     }
-  }, [settings.themeId, hydratedTheme]);
+  }, [settings.themeId, settings.layoutId, hydratedTheme]);
 
   const goHome = useCallback(() => setView("home"), []);
   const goCamera = useCallback(() => setView("camera"), []);
@@ -102,6 +127,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setSettings((prev) => ({ ...prev, themeId }));
   }, []);
 
+  const setLayout = useCallback((layoutId: LayoutId) => {
+    setSettings((prev) => ({ ...prev, layoutId }));
+  }, []);
+
   const retake = useCallback(() => {
     setFrames([]);
     setSettings((prev) => ({ ...prev, stickers: [] }));
@@ -110,7 +139,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(() => {
     setFrames([]);
-    setSettings((prev) => ({ ...defaultSettings(), themeId: prev.themeId }));
+    setSettings((prev) => ({ ...defaultSettings(), themeId: prev.themeId, layoutId: prev.layoutId }));
     setView("home");
   }, []);
 
@@ -124,10 +153,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       finishSession,
       updateSettings,
       setTheme,
+      setLayout,
       retake,
       reset,
     }),
-    [view, frames, settings, goHome, goCamera, finishSession, updateSettings, setTheme, retake, reset],
+    [view, frames, settings, goHome, goCamera, finishSession, updateSettings, setTheme, setLayout, retake, reset],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

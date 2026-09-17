@@ -15,7 +15,11 @@ export type PatternId =
   | "stars"
   | "hearts"
   | "waves"
-  | "flowers";
+  | "flowers"
+  | "psychedelic-swirl"
+  | "maze-lines"
+  | "polka-dot"
+  | "grid-paper";
 
 function star(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
   ctx.beginPath();
@@ -56,6 +60,13 @@ function flake(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number)
   }
   ctx.closePath();
   ctx.fill();
+}
+
+/** A single swirling arc segment, offset from centre — several of these layered make a psychedelic linework tile. */
+function swirlArc(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, rotation: number): void {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, rotation, rotation + Math.PI * 1.4);
+  ctx.stroke();
 }
 
 function flower(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
@@ -204,6 +215,81 @@ const TILES: Record<PatternId, TileSpec> = {
       ctx.fillStyle = colorB;
       flower(ctx, size * 0.32, size * 0.34, size * 0.14);
       flower(ctx, size * 0.78, size * 0.72, size * 0.1);
+    },
+  },
+  "psychedelic-swirl": {
+    size: 56,
+    draw: (ctx, size, colorA, colorB) => {
+      ctx.fillStyle = colorA;
+      ctx.fillRect(0, 0, size, size);
+      ctx.strokeStyle = colorB;
+      ctx.lineWidth = size * 0.06;
+      ctx.lineCap = "round";
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      for (let i = 0; i < 4; i++) {
+        swirlArc(ctx, cx, cy, size * (0.14 + i * 0.1), (Math.PI / 2) * i);
+      }
+    },
+  },
+  "maze-lines": {
+    // A continuous right-angle corridor line per tile — reads as an
+    // arcade-maze grid (Pac-Man-style corridors), not a zigzag/chevron
+    // print. Segments start/end at fixed edge fractions so adjacent tiles'
+    // corridors roughly line up when repeated.
+    size: 96,
+    draw: (ctx, size, colorA, colorB) => {
+      ctx.fillStyle = colorA;
+      ctx.fillRect(0, 0, size, size);
+      ctx.strokeStyle = colorB;
+      ctx.lineWidth = size * 0.07;
+      ctx.lineCap = "square";
+      ctx.lineJoin = "miter";
+      const s = size;
+      ctx.beginPath();
+      ctx.moveTo(s * 0.15, 0);
+      ctx.lineTo(s * 0.15, s * 0.4);
+      ctx.lineTo(s * 0.55, s * 0.4);
+      ctx.lineTo(s * 0.55, s * 0.75);
+      ctx.lineTo(s, s * 0.75);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, s * 0.65);
+      ctx.lineTo(s * 0.3, s * 0.65);
+      ctx.lineTo(s * 0.3, s);
+      ctx.stroke();
+    },
+  },
+  "polka-dot": {
+    size: 30,
+    draw: (ctx, size, colorA, colorB) => {
+      ctx.fillStyle = colorA;
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = colorB;
+      const r = size * 0.13;
+      ctx.beginPath();
+      ctx.arc(size * 0.25, size * 0.25, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(size * 0.75, size * 0.75, r, 0, Math.PI * 2);
+      ctx.fill();
+    },
+  },
+  "grid-paper": {
+    size: 26,
+    draw: (ctx, size, colorA, colorB) => {
+      ctx.fillStyle = colorA;
+      ctx.fillRect(0, 0, size, size);
+      ctx.strokeStyle = colorB;
+      ctx.lineWidth = Math.max(0.6, size * 0.03);
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath();
+      ctx.moveTo(0, size - 0.5);
+      ctx.lineTo(size, size - 0.5);
+      ctx.moveTo(size - 0.5, 0);
+      ctx.lineTo(size - 0.5, size);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
     },
   },
 };

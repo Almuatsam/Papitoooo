@@ -16,7 +16,7 @@ import { cn } from "@/lib/cn";
  * sizes, so buttons stay in the readable body font.
  */
 const buttonVariants = cva(
-  "btn inline-flex items-center justify-center gap-2 whitespace-nowrap font-body font-bold uppercase tracking-wide transition-transform active:translate-y-0.5 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40",
+  "btn inline-flex items-center justify-center gap-2 whitespace-nowrap font-body font-bold uppercase tracking-wide transition-transform active:translate-y-0.5 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/40",
   {
     variants: {
       variant: {

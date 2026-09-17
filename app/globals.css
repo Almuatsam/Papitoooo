@@ -182,3 +182,117 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- Literal photo-booth hero (Home screen only) ------------------------
+   Its own scoped token set, deliberately separate from --paper/--accent
+   above — the hero is meant to read as a lit illustrated booth cabinet
+   rather than share the rest of the app's Y2K-pink identity. Nothing here
+   touches :root or any rule above; every selector is scoped under
+   `.booth-hero` so it can only ever affect the home hero. */
+.booth-hero {
+  /* Page tone behind the cabinet — deliberately distinct from --booth-bg so
+     the cabinet has real contrast to sit on instead of blending into the
+     page (previously both were near-black and the "cabinet" had no visible
+     silhouette). */
+  --booth-page: #0a0710;
+  --booth-bg: #1c1420;
+  --booth-bg-alt: #120e16;
+  --booth-chrome-1: #c9cdd6;
+  --booth-chrome-2: #6b6f78;
+  --booth-chrome-3: #2b2d33;
+  --booth-magenta: #ff2ec4;
+  --booth-magenta-glow: rgba(255, 46, 196, 0.55);
+  --booth-magenta-deep: #b8009c;
+  --font-booth-display: var(--font-orbitron);
+  background: var(--booth-page);
+}
+
+html[lang="ar"] .booth-hero {
+  --font-booth-display: var(--font-cairo);
+}
+
+.booth-shell {
+  background:
+    linear-gradient(var(--booth-bg), var(--booth-bg)) padding-box,
+    linear-gradient(160deg, var(--booth-chrome-1), var(--booth-chrome-3) 45%, var(--booth-chrome-2) 100%) border-box;
+  border: 3px solid transparent;
+}
+
+@keyframes booth-wordmark-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 12px var(--booth-magenta-glow)) drop-shadow(0 0 28px var(--booth-magenta-deep));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px var(--booth-magenta-glow)) drop-shadow(0 0 40px var(--booth-magenta-deep));
+  }
+}
+
+.booth-hero h1.booth-wordmark {
+  font-family: var(--font-booth-display), system-ui, sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0;
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    var(--booth-chrome-1) 25%,
+    var(--booth-chrome-2) 50%,
+    #ffffff 60%,
+    var(--booth-chrome-1) 78%,
+    var(--booth-chrome-3) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.35);
+  animation: booth-wordmark-pulse 3s ease-in-out infinite;
+}
+
+.booth-strip-frame {
+  background:
+    linear-gradient(var(--booth-bg-alt), var(--booth-bg-alt)) padding-box,
+    linear-gradient(160deg, var(--booth-chrome-1), var(--booth-chrome-3) 45%, var(--booth-chrome-2) 100%) border-box;
+  border: 3px solid transparent;
+  box-shadow: 0 0 24px var(--booth-magenta-glow);
+}
+
+.booth-strip-photo {
+  background: linear-gradient(135deg, var(--booth-chrome-3) 0%, var(--booth-bg-alt) 65%);
+  border-bottom: 2px solid var(--booth-chrome-3);
+}
+.booth-strip-photo:last-child {
+  border-bottom: none;
+}
+.booth-strip-photo:nth-child(1) {
+  background: linear-gradient(135deg, var(--booth-magenta-deep) 0%, var(--booth-bg-alt) 68%);
+}
+.booth-strip-photo:nth-child(2) {
+  background: linear-gradient(200deg, var(--booth-chrome-1) 0%, var(--booth-bg-alt) 72%);
+}
+.booth-strip-photo:nth-child(3) {
+  background: linear-gradient(60deg, var(--booth-magenta) 0%, var(--booth-bg-alt) 62%);
+}
+.booth-strip-photo:nth-child(4) {
+  background: linear-gradient(300deg, var(--booth-chrome-2) 0%, var(--booth-bg-alt) 75%);
+}
+
+.booth-start-btn {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--booth-magenta) 55%, white) 0%,
+    var(--booth-magenta) 45%,
+    var(--booth-magenta-deep) 100%
+  ) !important;
+  box-shadow:
+    0 0 18px var(--booth-magenta-glow),
+    0 0 36px var(--booth-magenta-glow) !important;
+  border-color: var(--booth-chrome-1) !important;
+  transition: box-shadow 0.2s ease-out;
+}
+.booth-start-btn:hover,
+.booth-start-btn:focus-visible {
+  box-shadow:
+    0 0 26px var(--booth-magenta-glow),
+    0 0 52px var(--booth-magenta-glow) !important;
+}

@@ -4,8 +4,8 @@ import { cn } from "@/lib/cn";
 import { useLanguage } from "@/hooks/use-language";
 import { FilterCarousel } from "@/components/camera/filter-carousel";
 import { StickerTray } from "@/components/result/sticker-tray";
-import { THEMES, BORDER_SWATCHES, BG_SWATCHES } from "@/lib/themes";
-import { THEME_ICONS } from "@/lib/theme-icons";
+import { ThemeBrowser } from "@/components/result/theme-browser";
+import { BORDER_SWATCHES, BG_SWATCHES } from "@/lib/themes";
 import type { SessionSettings } from "@/types";
 
 interface CustomizerProps {
@@ -67,27 +67,7 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
       </Field>
 
       <Field label={t.result.vibe}>
-        <div className="flex flex-wrap gap-2">
-          {THEMES.map((theme) => {
-            const active = theme.id === settings.themeId;
-            const Icon = THEME_ICONS[theme.id];
-            return (
-              <button
-                key={theme.id}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onChange({ themeId: theme.id })}
-                className={cn(
-                  "facet-sm inline-flex items-center gap-1.5 border-2 border-line px-3 py-1.5 text-xs font-bold uppercase tracking-wide",
-                  active ? "bg-accent text-white" : "bg-panel hover:bg-white/5",
-                )}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {t.themes[theme.id].label}
-              </button>
-            );
-          })}
-        </div>
+        <ThemeBrowser themeId={settings.themeId} onSelect={(themeId) => onChange({ themeId })} />
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
@@ -125,7 +105,7 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
       </Field>
 
       <Field label={t.result.stickers}>
-        <StickerTray onAddSvg={onAddStickerSvg} onAddEmoji={onAddEmoji} />
+        <StickerTray themeId={settings.themeId} onAddSvg={onAddStickerSvg} onAddEmoji={onAddEmoji} />
       </Field>
     </div>
   );

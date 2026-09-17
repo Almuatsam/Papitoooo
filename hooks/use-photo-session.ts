@@ -5,7 +5,6 @@ import { capturePhotoFromVideo } from "@/lib/camera-utils";
 import {
   COUNTDOWN_SECONDS,
   FLASH_MS,
-  PHOTO_COUNT,
   REVIEW_MS,
 } from "@/lib/constants";
 import type { Frame } from "@/types";
@@ -17,6 +16,8 @@ const FLASH_CAPTURE_DELAY = 110;
 
 interface UsePhotoSessionInput {
   videoRef: React.RefObject<HTMLVideoElement>;
+  /** How many shots this session takes — derived from the chosen layout's photoCount. */
+  shotCount: number;
   onComplete: (frames: Frame[]) => void;
 }
 
@@ -37,6 +38,7 @@ interface UsePhotoSessionResult {
 
 export function usePhotoSession({
   videoRef,
+  shotCount,
   onComplete,
 }: UsePhotoSessionInput): UsePhotoSessionResult {
   const [phase, setPhase] = useState<SessionPhase>("idle");
@@ -98,7 +100,7 @@ export function usePhotoSession({
           after(FLASH_MS - FLASH_CAPTURE_DELAY, () => {
             setPhase("review");
             after(REVIEW_MS, () => {
-              if (index + 1 < PHOTO_COUNT && framesRef.current.length >= index + 1) {
+              if (index + 1 < shotCount && framesRef.current.length >= index + 1) {
                 runShot(index + 1);
               } else {
                 setPhase("done");
@@ -111,7 +113,7 @@ export function usePhotoSession({
 
       after(1000, () => tick(COUNTDOWN_SECONDS - 1));
     },
-    [after, videoRef],
+    [after, videoRef, shotCount],
   );
 
   const start = useCallback(() => {

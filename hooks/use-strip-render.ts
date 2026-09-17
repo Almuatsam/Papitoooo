@@ -66,7 +66,7 @@ export function useStripRender(
   }, [frames, lang, JSON.stringify(previewSettings), debounceMs]);
 
   const renderFullRes = useCallback(
-    () => renderStrip({ frames, scale: EXPORT_SCALE, lang, ...settings }),
+    () => renderStrip({ frames, scale: EXPORT_SCALE, lang, finalize: true, ...settings }),
     [frames, lang, settings],
   );
 

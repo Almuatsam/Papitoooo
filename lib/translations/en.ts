@@ -1,10 +1,10 @@
-import type { FilterId, StripThemeId } from "@/types";
-import type { StickerCollectionId } from "@/lib/decor/stickers";
+import type { FilterId, LayoutId, StripThemeId } from "@/types";
+import type { ThemeCategoryId } from "@/lib/theme-categories";
 
 export const en = {
   app: {
     name: "Photo Booth",
-    tagline: "Four shots. One film strip. Straight to your camera roll.",
+    tagline: "Real shots. Real film strips. Straight to your camera roll.",
     privacy: "Your photos never leave this device",
   },
   home: {
@@ -14,7 +14,6 @@ export const en = {
   },
   camera: {
     back: "Back",
-    shots: "4-shot strip",
     startSession: "Start session",
     waiting: "Waiting for camera",
     wakingCamera: "Waking the camera",
@@ -74,28 +73,31 @@ export const en = {
     contrast: "High contrast",
   } satisfies Record<FilterId, string>,
   themes: {
-    classic: { label: "Classic", tagline: "Clean & simple" },
-    "y2k-camera": { label: "Y2K Digital Camera", tagline: "Chrome & flash" },
-    "glitter-scrapbook": { label: "Glitter Scrapbook", tagline: "Tape & sparkle" },
-    "pop-magazine": { label: "Pop Magazine", tagline: "Bold & loud" },
-    "retro-internet": { label: "Retro Internet", tagline: "Pixels & dial-up" },
-    "cute-booth": { label: "Cute Photo Booth", tagline: "Bows & hearts" },
+    "festival-poster": { label: "Festival Poster", tagline: "Mustard, teal & medallions" },
+    "streaming-card": { label: "Streaming Card", tagline: "Clean card, waveform bar" },
+    "arcade-corkboard": { label: "Arcade Corkboard", tagline: "Neon maze, pinned & tilted" },
+    "doodle-diary": { label: "Doodle Diary", tagline: "Grid paper & marker headline" },
+    "boarding-pass": { label: "Boarding Pass", tagline: "Perforated ticket, route fields" },
+    receipt: { label: "Receipt", tagline: "Itemized header, barcode footer" },
+    "par-avion": { label: "Par Avion", tagline: "Airmail stripes, stamp & seal" },
   } satisfies Record<StripThemeId, { label: string; tagline: string }>,
-  stickerCollections: {
-    y2k: "Y2K",
-    cute: "Cute",
-    glitter: "Glitter",
-    retro: "Retro",
-    camera: "Digital Cam",
-    food: "Food",
-    flowers: "Flowers",
-    stars: "Stars",
-    hearts: "Hearts",
-    animals: "Animals",
-    music: "Music",
-    internet: "Internet",
-    doodles: "Doodles",
-  } satisfies Record<StickerCollectionId, string>,
+  themeCategories: {
+    "print-ticket": "Print & Ticket",
+    "bold-loud": "Bold & Loud",
+    minimal: "Minimal",
+    playful: "Playful",
+  } satisfies Record<ThemeCategoryId, string>,
+  layouts: {
+    "strip-3": { label: "Short Strip", tagline: "3-photo vertical strip" },
+    "strip-4": { label: "Classic Strip", tagline: "4-photo vertical strip" },
+    "grid-6": { label: "Grid Strip", tagline: "6-photo grid, 2x3" },
+    "single-portrait": { label: "Single Portrait", tagline: "1 tall photo" },
+    "single-landscape": { label: "Single Landscape", tagline: "1 wide photo" },
+    "triple-horizontal": { label: "Triple Wide", tagline: "3 stacked wide photos" },
+    "asymmetric-3": { label: "Big + Two", tagline: "1 large + 2 small photos" },
+    "asymmetric-4": { label: "Uneven Grid", tagline: "1 large + 3 small photos" },
+    "double-strip-4": { label: "Double Print", tagline: "Two 4-photo strips, side by side" },
+  } satisfies Record<LayoutId, { label: string; tagline: string }>,
 };
 
 export type Translations = typeof en;
