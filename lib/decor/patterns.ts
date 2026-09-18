@@ -16,10 +16,9 @@ export type PatternId =
   | "hearts"
   | "waves"
   | "flowers"
-  | "psychedelic-swirl"
   | "maze-lines"
   | "polka-dot"
-  | "grid-paper";
+  | "graph-grid";
 
 function star(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
   ctx.beginPath();
@@ -60,13 +59,6 @@ function flake(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number)
   }
   ctx.closePath();
   ctx.fill();
-}
-
-/** A single swirling arc segment, offset from centre — several of these layered make a psychedelic linework tile. */
-function swirlArc(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, rotation: number): void {
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, rotation, rotation + Math.PI * 1.4);
-  ctx.stroke();
 }
 
 function flower(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
@@ -217,21 +209,6 @@ const TILES: Record<PatternId, TileSpec> = {
       flower(ctx, size * 0.78, size * 0.72, size * 0.1);
     },
   },
-  "psychedelic-swirl": {
-    size: 56,
-    draw: (ctx, size, colorA, colorB) => {
-      ctx.fillStyle = colorA;
-      ctx.fillRect(0, 0, size, size);
-      ctx.strokeStyle = colorB;
-      ctx.lineWidth = size * 0.06;
-      ctx.lineCap = "round";
-      const cx = size * 0.5;
-      const cy = size * 0.5;
-      for (let i = 0; i < 4; i++) {
-        swirlArc(ctx, cx, cy, size * (0.14 + i * 0.1), (Math.PI / 2) * i);
-      }
-    },
-  },
   "maze-lines": {
     // A continuous right-angle corridor line per tile — reads as an
     // arcade-maze grid (Pac-Man-style corridors), not a zigzag/chevron
@@ -275,21 +252,19 @@ const TILES: Record<PatternId, TileSpec> = {
       ctx.fill();
     },
   },
-  "grid-paper": {
-    size: 26,
+  "graph-grid": {
+    size: 34,
     draw: (ctx, size, colorA, colorB) => {
       ctx.fillStyle = colorA;
       ctx.fillRect(0, 0, size, size);
       ctx.strokeStyle = colorB;
-      ctx.lineWidth = Math.max(0.6, size * 0.03);
-      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(0, size - 0.5);
-      ctx.lineTo(size, size - 0.5);
-      ctx.moveTo(size - 0.5, 0);
-      ctx.lineTo(size - 0.5, size);
+      ctx.moveTo(0, 0.5);
+      ctx.lineTo(size, 0.5);
+      ctx.moveTo(0.5, 0);
+      ctx.lineTo(0.5, size);
       ctx.stroke();
-      ctx.globalAlpha = 1;
     },
   },
 };

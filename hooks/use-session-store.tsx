@@ -18,13 +18,12 @@ const DEFAULT_THEME: StripThemeId = "boarding-pass";
 const DEFAULT_LAYOUT: LayoutId = "strip-4";
 
 const VALID_THEMES: StripThemeId[] = [
-  "festival-poster",
   "streaming-card",
   "arcade-corkboard",
-  "doodle-diary",
   "boarding-pass",
   "receipt",
   "par-avion",
+  "leopard-scrapbook",
 ];
 
 const VALID_LAYOUTS: LayoutId[] = [

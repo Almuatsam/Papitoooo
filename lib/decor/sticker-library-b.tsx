@@ -1,66 +1,17 @@
 /**
- * Two theme packs split out of lib/decor/stickers.tsx purely to keep each
- * file under a reasonable line budget. Same registry, same materials; see
+ * Theme pack split out of lib/decor/stickers.tsx purely to keep each file
+ * under a reasonable line budget. Same registry, same materials; see
  * lib/decor/sticker-registry-core.ts for the shared bits.
  */
 
-import { arrowPath, handwrittenNoteShape, underlinePath, wrap } from "@/lib/decor/sticker-shapes";
+import { handwrittenNoteShape, wrap } from "@/lib/decor/sticker-shapes";
 import { chromeFinish, fabricFinish, paperCutoutFinish, plasticFinish } from "@/lib/decor/sticker-materials";
 import { seedFrom } from "@/lib/decor/strip-pieces";
-import { INK, NAVY, WHITE, nextId, type StickerDef } from "@/lib/decor/sticker-registry-core";
+import { NAVY, WHITE, nextId, type StickerDef } from "@/lib/decor/sticker-registry-core";
 
-const BLUE = "#2f6fed";
-const ORANGE = "#ff6a13";
 const GOLD_ACCENT = "#c9a227";
 
 export const STICKERS_B: StickerDef[] = [
-  // ---- Doodle Diary: hand-drawn comic props ------------------------------
-  {
-    id: nextId("doodle-diary"),
-    collection: "doodle-diary",
-    label: "Sneaker doodle",
-    svg: wrap(
-      `<path d="M8 44 h14 l6 -8 h20 l10 8 v6 h-50 Z" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>` +
-        `<path d="M14 44 v-10 M22 44 v-8 M30 44 v-8" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`,
-    ),
-  },
-  {
-    id: nextId("doodle-diary"),
-    collection: "doodle-diary",
-    label: "Soccer ball doodle",
-    svg: wrap(
-      `<circle cx="32" cy="32" r="22" fill="none" stroke="${INK}" stroke-width="2.5"/>` +
-        `<path d="${`M32 16 L40 22 L37 32 L27 32 L24 22 Z`}" fill="none" stroke="${INK}" stroke-width="2"/>`,
-    ),
-  },
-  {
-    id: nextId("doodle-diary"),
-    collection: "doodle-diary",
-    label: "Starburst BANG",
-    svg: wrap(
-      `<path d="M32 4 L38 22 L56 16 L42 30 L58 38 L38 38 L42 56 L32 42 L22 56 L26 38 L6 38 L22 30 L8 16 L26 22 Z" fill="${ORANGE}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`,
-    ),
-  },
-  {
-    id: nextId("doodle-diary"),
-    collection: "doodle-diary",
-    label: "Speech bubble",
-    svg: wrap(
-      `<path d="M8 10 h48 v28 h-30 l-8 10 v-10 h-10 Z" fill="${WHITE}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>` +
-        `<path d="M16 22 h32 M16 30 h20" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`,
-    ),
-  },
-  {
-    id: nextId("doodle-diary"),
-    collection: "doodle-diary",
-    label: "Scribble heart",
-    svg: wrap(
-      `<path d="M32 46c-14-8-22-18-22-28 0-8 6-12 12-12 5 0 8 3 10 7 2-4 5-7 10-7 6 0 12 4 12 12 0 10-8 20-22 28z" fill="none" stroke="${BLUE}" stroke-width="3" stroke-linejoin="round"/>`,
-    ),
-  },
-  { id: nextId("doodle-diary"), collection: "doodle-diary", label: "Decorative arrow", svg: wrap(arrowPath(seedFrom("dd-arrow"))) },
-  { id: nextId("doodle-diary"), collection: "doodle-diary", label: "Underline swoop", svg: wrap(underlinePath(seedFrom("dd-underline"))) },
-
   // ---- Boarding Pass: airplane, luggage, stamps, globe -------------------
   {
     id: nextId("boarding-pass"),

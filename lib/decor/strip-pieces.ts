@@ -62,6 +62,7 @@ import {
   flowerPiece,
   irregularCutout,
   organicBlob,
+  sparkleStar,
   squigglePiece,
   starPiece,
   starburstPiece,
@@ -71,7 +72,6 @@ import {
   airplaneMotif,
   approvedStamp,
   barcode,
-  cornerMedallion,
   nowPlayingPanel,
   postageStampPiece,
   receiptFooter,
@@ -130,6 +130,7 @@ const DEFAULT_SIZE: Record<StripPieceKind, [number, number]> = {
   "irregular-cutout": [40, 40],
   "organic-blob": [44, 44],
   "star-piece": [44, 44],
+  "sparkle-star": [44, 44],
   "flower-piece": [44, 44],
   "cloud-piece": [50, 31],
   "starburst-piece": [46, 46],
@@ -147,7 +148,6 @@ const DEFAULT_SIZE: Record<StripPieceKind, [number, number]> = {
   "rhinestone-cluster": [70, 60],
   // signature
   barcode: [90, 28],
-  "corner-medallion": [44, 44],
   "now-playing-panel": [580, 220],
   "route-field-block": [120, 44],
   "receipt-header": [820, 110],
@@ -251,6 +251,8 @@ function drawShape(
       return organicBlob(color, w, seed);
     case "star-piece":
       return starPiece(color, w, seed);
+    case "sparkle-star":
+      return sparkleStar(color, w, seed);
     case "flower-piece":
       return flowerPiece(color, w, seed);
     case "cloud-piece":
@@ -288,8 +290,6 @@ function drawShape(
     // signature
     case "barcode":
       return barcode(color, w, h, seed);
-    case "corner-medallion":
-      return cornerMedallion(color, secondaryColor, w, seed);
     case "now-playing-panel":
       return nowPlayingPanel(color, secondaryColor, w, h);
     case "route-field-block":

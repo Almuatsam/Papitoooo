@@ -62,23 +62,6 @@ export function roughRotate(inner: string, seed: number, maxDeg = 5, cx = 32, cy
   return `<g transform="rotate(${deg.toFixed(1)} ${cx} ${cy})">${inner}</g>`;
 }
 
-/** A hand-doodled curved arrow with an open arrowhead. */
-export function arrowPath(seed: number): string {
-  const rand = mulberry32(seed);
-  const wobble = (rand() - 0.5) * 4;
-  return (
-    `<path d="M8 ${44 + wobble} Q ${20 + wobble} 12 ${52} 18" fill="none" stroke="#101014" stroke-width="3" stroke-linecap="round"/>` +
-    `<path d="M40 10 L54 16 L46 28" fill="none" stroke="#101014" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`
-  );
-}
-
-/** A wavy hand-drawn underline/swoop mark. */
-export function underlinePath(seed: number): string {
-  const rand = mulberry32(seed);
-  const amp = 5 + rand() * 3;
-  return `<path d="M6 ${34 + amp} Q 18 ${34 - amp} 32 ${34 + amp} T 58 ${34 + amp}" fill="none" stroke="#101014" stroke-width="3.5" stroke-linecap="round"/>`;
-}
-
 /** Three short wavy lines standing in for handwritten text, on a small flag/tag shape. */
 export function handwrittenNoteShape(fill: string, seed: number): string {
   const rand = mulberry32(seed);

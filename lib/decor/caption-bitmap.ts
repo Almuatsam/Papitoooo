@@ -78,26 +78,6 @@ export function renderCaptionBitmap(
     ctx.font = `400 ${fontSize}px ${family}`;
     ctx.fillStyle = colors.ink;
     ctx.fillText(text, cx, cy + fontSize * 0.04);
-  } else if (treatment === "poster-arc") {
-    // Bold, outlined, stacked event-flyer lettering.
-    ctx.font = `900 ${fontSize}px ${family}`;
-    ctx.lineWidth = Math.max(2, fontSize * 0.12);
-    ctx.strokeStyle = colors.ink;
-    ctx.fillStyle = colors.accent2;
-    ctx.strokeText(text, cx, cy + fontSize * 0.04);
-    ctx.fillText(text, cx, cy + fontSize * 0.04);
-  } else if (treatment === "marker-headline") {
-    // The user's own caption, styled as a thick hand-drawn marker headline.
-    ctx.font = `700 ${fontSize}px ${family}`;
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(-0.02);
-    ctx.lineWidth = Math.max(1.5, fontSize * 0.06);
-    ctx.strokeStyle = colors.accent;
-    ctx.fillStyle = colors.ink;
-    ctx.strokeText(text, 0, fontSize * 0.05);
-    ctx.fillText(text, 0, fontSize * 0.05);
-    ctx.restore();
   } else if (treatment === "now-playing") {
     // Left-aligned "track title" (the user's own caption) + a small muted
     // subtitle row directly below it — the title/artist block of a real

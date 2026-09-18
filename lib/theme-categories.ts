@@ -10,7 +10,9 @@ export interface ThemeCategory {
 
 export const THEME_CATEGORIES: ThemeCategory[] = [
   { id: "print-ticket", themeIds: ["boarding-pass", "receipt", "par-avion"] },
-  { id: "bold-loud", themeIds: ["festival-poster", "arcade-corkboard"] },
+  // Single-item category, same as "minimal" below — an established pattern
+  // here, not a leftover from removing Festival Poster.
+  { id: "bold-loud", themeIds: ["arcade-corkboard"] },
   { id: "minimal", themeIds: ["streaming-card"] },
-  { id: "playful", themeIds: ["doodle-diary"] },
+  { id: "playful", themeIds: ["leopard-scrapbook"] },
 ];

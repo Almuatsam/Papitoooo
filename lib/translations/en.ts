@@ -82,13 +82,12 @@ export const en = {
     contrast: "High contrast",
   } satisfies Record<FilterId, string>,
   themes: {
-    "festival-poster": { label: "Festival Poster", tagline: "Mustard, teal & medallions" },
     "streaming-card": { label: "Streaming Card", tagline: "Clean card, waveform bar" },
     "arcade-corkboard": { label: "Arcade Corkboard", tagline: "Neon maze, pinned & tilted" },
-    "doodle-diary": { label: "Doodle Diary", tagline: "Grid paper & marker headline" },
     "boarding-pass": { label: "Boarding Pass", tagline: "Perforated ticket, route fields" },
     receipt: { label: "Receipt", tagline: "Itemized header, barcode footer" },
     "par-avion": { label: "Par Avion", tagline: "Airmail stripes, stamp & seal" },
+    "leopard-scrapbook": { label: "Leopard Scrapbook", tagline: "Leopard scallops, sparkle stars & grid paper" },
   } satisfies Record<StripThemeId, { label: string; tagline: string }>,
   themeCategories: {
     "print-ticket": "Print & Ticket",

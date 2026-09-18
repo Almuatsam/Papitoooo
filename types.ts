@@ -12,13 +12,12 @@ export type FilterId =
   | "contrast";
 
 export type StripThemeId =
-  | "festival-poster"
   | "streaming-card"
   | "arcade-corkboard"
-  | "doodle-diary"
   | "boarding-pass"
   | "receipt"
-  | "par-avion";
+  | "par-avion"
+  | "leopard-scrapbook";
 
 /** How many photos a strip has and how they're arranged — independent of theme. */
 export type LayoutId =

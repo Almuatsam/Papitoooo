@@ -81,13 +81,12 @@ export const ar: Translations = {
     contrast: "تباين عالٍ",
   },
   themes: {
-    "festival-poster": { label: "ملصق المهرجان", tagline: "خردل وفيروزي وميداليات" },
     "streaming-card": { label: "بطاقة البث", tagline: "بطاقة نظيفة وموجة صوتية" },
     "arcade-corkboard": { label: "لوحة الأركيد", tagline: "متاهة نيون، مثبتة ومائلة" },
-    "doodle-diary": { label: "دفتر الخربشة", tagline: "ورق مربعات وعنوان بالماركر" },
     "boarding-pass": { label: "بطاقة الصعود", tagline: "تذكرة مثقوبة وحقول المسار" },
     receipt: { label: "الفاتورة", tagline: "ترويسة مفصلة وباركود" },
     "par-avion": { label: "بريد جوي", tagline: "خطوط بريدية وختم وشمع" },
+    "leopard-scrapbook": { label: "دفتر النمر", tagline: "تعرجات نمرية، نجوم وردية وورق مربعات" },
   },
   themeCategories: {
     "print-ticket": "طباعة وتذاكر",

@@ -3,88 +3,26 @@
  * across themes." Each is a small, self-contained SVG string (portable —
  * works as `<img src="data:image/svg+xml,...">` in the tray, and
  * rasterises the same way when baked into the strip export). Split across
- * this file (Festival Poster, Streaming Card, Arcade Corkboard) and
+ * this file (Streaming Card, Arcade Corkboard) and
  * lib/decor/sticker-library-b.tsx / -c.tsx purely to keep each file under
  * a reasonable line budget — see lib/decor/sticker-registry-core.ts for
  * the shared bits (StickerDef, nextId, colour constants, heartSticker).
  */
 
-import { flowerPetalsSvg, heartPath, organicBlobPath, outlined, starPath, wrap } from "@/lib/decor/sticker-shapes";
-import { chromeFinish, holographicFinish, paperCutoutFinish, plasticFinish } from "@/lib/decor/sticker-materials";
+import { flowerPetalsSvg, heartPath, wrap } from "@/lib/decor/sticker-shapes";
+import { chromeFinish, plasticFinish } from "@/lib/decor/sticker-materials";
 import { seedFrom } from "@/lib/decor/strip-pieces";
 import { STICKERS_B } from "@/lib/decor/sticker-library-b";
 import { STICKERS_C } from "@/lib/decor/sticker-library-c";
-import { INK, PINK, nextId, type StickerCollectionId, type StickerDef } from "@/lib/decor/sticker-registry-core";
+import { INK, nextId, type StickerCollectionId, type StickerDef } from "@/lib/decor/sticker-registry-core";
 
 export type { StickerCollectionId, StickerDef };
 
-const MUSTARD = "#d4a017";
-const TEAL = "#1f7a72";
 const NEAR_BLACK = "#2f2f33";
 const CYAN = "#00e5ff";
 const MAGENTA = "#ff2fd6";
 
 export const STICKERS: StickerDef[] = [
-  // ---- Festival Poster: medallions, flags, sunbursts, ink swirls ---------
-  {
-    id: nextId("festival-poster"),
-    collection: "festival-poster",
-    label: "Medallion charm",
-    svg: wrap(
-      paperCutoutFinish(`M32 6 A26 26 0 1 1 31.9 6 Z`, PINK, seedFrom("fp-medallion")) +
-        `<path d="M20 40 L32 20 L44 40 Z" fill="${INK}"/>`,
-    ),
-  },
-  {
-    id: nextId("festival-poster"),
-    collection: "festival-poster",
-    label: "Ticket stub",
-    svg: wrap(
-      paperCutoutFinish(`M8 16 h48 v32 h-48 Z`, MUSTARD, seedFrom("fp-ticket")) +
-        `<circle cx="32" cy="16" r="4" fill="#ffffff"/><circle cx="32" cy="48" r="4" fill="#ffffff"/>`,
-    ),
-  },
-  {
-    id: nextId("festival-poster"),
-    collection: "festival-poster",
-    label: "Star flag",
-    svg: wrap(
-      paperCutoutFinish(`M10 8 h30 l14 24 -14 24 h-30 Z`, TEAL, seedFrom("fp-flag")) +
-        `<path d="${starPath(30, 32, 10, 4, 5, seedFrom("fp-flag-star"))}" fill="#ffffff"/>`,
-    ),
-  },
-  {
-    id: nextId("festival-poster"),
-    collection: "festival-poster",
-    label: "Sunburst",
-    svg: wrap(paperCutoutFinish(starPath(32, 32, 27, 14, 10, seedFrom("fp-sun")), PINK, seedFrom("fp-sun", "finish"))),
-  },
-  {
-    id: nextId("festival-poster"),
-    collection: "festival-poster",
-    label: "Ink swirl",
-    svg: wrap(holographicFinish(organicBlobPath(32, 32, 44, seedFrom("fp-swirl")), seedFrom("fp-swirl", "finish"))),
-  },
-  {
-    id: nextId("festival-poster"),
-    collection: "festival-poster",
-    label: "Ribbon banner",
-    svg: wrap(
-      paperCutoutFinish(`M6 24 h52 v16 h-52 Z`, TEAL, seedFrom("fp-ribbon")) +
-        `<path d="M6 24 L16 32 L6 40 Z" fill="${MUSTARD}"/><path d="M58 24 L48 32 L58 40 Z" fill="${MUSTARD}"/>`,
-    ),
-  },
-  {
-    id: nextId("festival-poster"),
-    collection: "festival-poster",
-    label: "Sparkle fragment",
-    svg: wrap(
-      outlined(
-        `<path d="M32 6c1.6 10 6.4 15.6 18 18-11.6 2.4-16.4 8-18 18-1.6-10-6.4-15.6-18-18 11.6-2.4 16.4-8 18-18z" fill="${PINK}"/>`,
-      ),
-    ),
-  },
-
   // ---- Streaming Card: flat minimal glyphs, no gloss/shadow --------------
   {
     id: nextId("streaming-card"),

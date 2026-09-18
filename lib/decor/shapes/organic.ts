@@ -96,6 +96,32 @@ export function starPiece(color: string, size = 44, seed = 0): HTMLCanvasElement
   return canvas;
 }
 
+/** A 4-point sparkle/starburst — deeply pinched inner radius, distinct from starPiece's fat 5-point star. */
+export function sparkleStar(color: string, size = 44, seed = 0): HTMLCanvasElement {
+  const { canvas, ctx } = makeCanvas(size, size);
+  if (!ctx) return canvas;
+  const rand = mulberry32(seed);
+  const cx = size / 2;
+  const cy = size / 2;
+  const rOuter = size * 0.48;
+  const rInner = size * 0.13;
+  const points = 4;
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    let r = i % 2 === 0 ? rOuter : rInner;
+    r *= 0.94 + rand() * 0.12;
+    const angle = (Math.PI / points) * i - Math.PI / 2;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  return canvas;
+}
+
 /** A simple 5-petal flat paper flower shape. */
 export function flowerPiece(color: string, size = 44, seed = 0): HTMLCanvasElement {
   const { canvas, ctx } = makeCanvas(size, size);

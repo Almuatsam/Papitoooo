@@ -3,7 +3,7 @@
  * genuinely-structural graphic per theme (barcode, receipt header/footer,
  * a boarding-pass route-field block, postage stamp, wax seal, ...). Unlike
  * the straps/geometric/organic/handmade families, these aren't reusable
- * across themes — each exists because one of the 7 reference photos needs
+ * across themes — each exists because one of the reference photos needs
  * it. Drawn with plain canvas 2D (including `ctx.fillText`, same technique
  * `renderCaptionBitmap` already uses), then finished by the same
  * lib/decor/piece-materials.ts pipeline as every other piece.
@@ -97,43 +97,6 @@ export function airplaneMotif(color: string, w = 260, h = 180): HTMLCanvasElemen
   const { canvas, ctx } = makeCanvas(w, h);
   if (!ctx) return canvas;
   drawAirplaneIcon(ctx, w / 2, h / 2, Math.min(w, h) * 0.92, color, -35);
-  return canvas;
-}
-
-/** An ornate circular corner badge — an original abstract mountain/fan-style motif, not any real festival's artwork. */
-export function cornerMedallion(color: string, secondaryColor: string, size = 44, seed = 0): HTMLCanvasElement {
-  const { canvas, ctx } = makeCanvas(size, size);
-  if (!ctx) return canvas;
-  const rand = mulberry32(seed);
-  const cx = size / 2;
-  const cy = size / 2;
-  const r = size * 0.44;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-  const notches = 10;
-  ctx.fillStyle = "rgba(0,0,0,0.14)";
-  for (let i = 0; i < notches; i++) {
-    const angle = (Math.PI * 2 * i) / notches + rand() * 0.1;
-    const x = cx + Math.cos(angle) * r * 0.92;
-    const y = cy + Math.sin(angle) * r * 0.92;
-    ctx.beginPath();
-    ctx.arc(x, y, size * 0.045, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.fillStyle = secondaryColor;
-  ctx.beginPath();
-  ctx.moveTo(cx - r * 0.42, cy + r * 0.3);
-  ctx.lineTo(cx, cy - r * 0.36);
-  ctx.lineTo(cx + r * 0.42, cy + r * 0.3);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = "#101014";
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.stroke();
   return canvas;
 }
 

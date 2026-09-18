@@ -1,8 +1,9 @@
 import { paintPattern } from "@/lib/decor/patterns";
+import { drawLeopardNineSliceBorder } from "@/lib/decor/assets/leopard-scallop-frame";
 import type { ThemeColors, ThemeDef } from "@/lib/themes";
 
-/** Draws the theme's outer frame treatment onto `fCanvas`. Reuses whatever Fabric classes the caller already imported (dynamic-imported once per render in lib/strip-renderer.ts). */
-export function drawOuterFrame(
+/** Draws the theme's outer frame treatment onto `fCanvas`. Reuses whatever Fabric classes the caller already imported (dynamic-imported once per render in lib/strip-renderer.ts). Async only because "leopard-scallop" loads/processes a real PNG asset; every other style stays synchronous internally. */
+export async function drawOuterFrame(
   strip: ThemeDef["strip"],
   canvasW: number,
   canvasH: number,
@@ -11,7 +12,7 @@ export function drawOuterFrame(
   colors: ThemeColors,
   // Fabric's dynamically-imported classes, typed loosely to avoid re-declaring the whole module surface here.
   fabric: { fCanvas: any; Rect: any; Circle: any; FabricImage: any },
-): void {
+): Promise<void> {
   const { fCanvas, Rect, Circle, FabricImage } = fabric;
   if (strip.outerFrame.style === "solid") {
     fCanvas.add(
@@ -129,6 +130,25 @@ export function drawOuterFrame(
       bandCtx.fillRect(w, w, Math.max(0, canvasW - w * 2), Math.max(0, canvasH - w * 2));
       bandCtx.restore();
       fCanvas.add(new FabricImage(bandTile, { left: 0, top: 0, selectable: false, evented: false }));
+    }
+  } else if (strip.outerFrame.style === "leopard-scallop") {
+    // The user's real leopard-print artwork (public/decor/leopard-scallop-
+    // frame.png), 9-sliced onto a canvas sized to the ACTUAL canvasW/
+    // canvasH every render — see lib/decor/assets/leopard-scallop-frame.ts
+    // for why that's what makes one fixed piece of art work as a border
+    // across every layout without distorting its corners or fur detail.
+    try {
+      const bandCanvas = document.createElement("canvas");
+      bandCanvas.width = canvasW;
+      bandCanvas.height = canvasH;
+      const bandCtx = bandCanvas.getContext("2d");
+      if (bandCtx) {
+        await drawLeopardNineSliceBorder(bandCtx, canvasW, canvasH);
+        fCanvas.add(new FabricImage(bandCanvas, { left: 0, top: 0, selectable: false, evented: false }));
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[outer-frame] leopard-scallop border failed, skipping", err);
     }
   }
 }

@@ -54,6 +54,7 @@ export type StripPieceKind =
   | "irregular-cutout"
   | "organic-blob"
   | "star-piece"
+  | "sparkle-star"
   | "flower-piece"
   | "cloud-piece"
   | "starburst-piece"
@@ -71,7 +72,6 @@ export type StripPieceKind =
   | "rhinestone-cluster"
   // ---- signature: bespoke per-theme structural graphics --------------------
   | "barcode"
-  | "corner-medallion"
   | "now-playing-panel"
   | "route-field-block"
   | "receipt-header"
@@ -136,8 +136,6 @@ export type CaptionTreatment =
   | "cover-line"
   | "pixel"
   | "bubble"
-  | "poster-arc"
-  | "marker-headline"
   | "airmail-tag"
   | "now-playing"
   | "boarding-pass";
@@ -189,7 +187,7 @@ export interface ThemeDef {
     captionFontVar: string;
     captionFontSize: number;
     /** Outer frame baked around the whole strip. "ticket" = a perforation line along one edge; "airmail" = a diagonal striped band around all edges. */
-    outerFrame: { style: "none" | "solid" | "dashed" | "chrome" | "scallop" | "ticket" | "airmail"; width: number };
+    outerFrame: { style: "none" | "solid" | "dashed" | "chrome" | "scallop" | "ticket" | "airmail" | "leopard-scallop"; width: number };
     /**
      * A solid-color band across the very top of the strip (Boarding Pass's
      * "BOARDING PASS" bar) — drawn full-width, `height` tall, before the

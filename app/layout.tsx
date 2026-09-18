@@ -6,7 +6,6 @@ import {
   Space_Mono,
   Permanent_Marker,
   Quicksand,
-  Anton,
   Press_Start_2P,
   Fredoka,
   Flavors,
@@ -42,7 +41,6 @@ const marker = Permanent_Marker({
   display: "swap",
 });
 const quicksand = Quicksand({ subsets: ["latin"], variable: "--font-quicksand", display: "swap" });
-const anton = Anton({ subsets: ["latin"], weight: "400", variable: "--font-anton", display: "swap" });
 const pressStart = Press_Start_2P({
   subsets: ["latin"],
   weight: "400",
@@ -84,7 +82,6 @@ const fontVars = [
   spaceMono.variable,
   marker.variable,
   quicksand.variable,
-  anton.variable,
   pressStart.variable,
   fredoka.variable,
   flavors.variable,

@@ -198,8 +198,12 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     // Painted onto an offscreen tile and added as a Fabric image (never onto
     // Fabric's own canvas element directly — renderAll() would wipe it).
     const isScallop = strip.outerFrame.style === "scallop";
+    // "leopard-scallop" also confines the background pattern to the area
+    // inside its border band — the border itself is opaque fur, drawn later
+    // in drawOuterFrame(), so nothing needs painting under it.
+    const insetsBackground = isScallop || strip.outerFrame.style === "leopard-scallop";
     const band = strip.outerFrame.width;
-    const bgArea = isScallop
+    const bgArea = insetsBackground
       ? { x: band, y: band, w: canvasW - band * 2, h: canvasH - band * 2 }
       : { x: 0, y: 0, w: canvasW, h: canvasH };
 
@@ -278,7 +282,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     }
 
     // ---- outer frame ---------------------------------------------------
-    drawOuterFrame(strip, canvasW, canvasH, keyline, paper, colors, { fCanvas, Rect, Circle, FabricImage });
+    await drawOuterFrame(strip, canvasW, canvasH, keyline, paper, colors, { fCanvas, Rect, Circle, FabricImage });
 
     // ---- decoration pieces: select + jitter, then frame-anchored back layer
     // Each theme offers a pool of candidate pieces (lib/themes/); which

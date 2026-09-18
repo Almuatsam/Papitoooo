@@ -1,12 +1,11 @@
 import type { StripThemeId } from "@/types";
 import type { ThemeDef } from "@/lib/themes/types";
-import { festivalPoster } from "@/lib/themes/festival-poster";
 import { streamingCard } from "@/lib/themes/streaming-card";
 import { arcadeCorkboard } from "@/lib/themes/arcade-corkboard";
-import { doodleDiary } from "@/lib/themes/doodle-diary";
 import { boardingPass } from "@/lib/themes/boarding-pass";
 import { receipt } from "@/lib/themes/receipt";
 import { parAvion } from "@/lib/themes/par-avion";
+import { leopardScrapbook } from "@/lib/themes/leopard-scrapbook";
 
 export type {
   CaptionTreatment,
@@ -22,13 +21,12 @@ export type {
 } from "@/lib/themes/types";
 
 export const THEMES: ThemeDef[] = [
-  festivalPoster,
   streamingCard,
   arcadeCorkboard,
-  doodleDiary,
   boardingPass,
   receipt,
   parAvion,
+  leopardScrapbook,
 ];
 
 const THEME_MAP: Record<StripThemeId, ThemeDef> = THEMES.reduce(
