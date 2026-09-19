@@ -19,11 +19,11 @@ const DEFAULT_LAYOUT: LayoutId = "strip-4";
 
 const VALID_THEMES: StripThemeId[] = [
   "streaming-card",
-  "arcade-corkboard",
   "boarding-pass",
   "receipt",
-  "par-avion",
   "leopard-scrapbook",
+  "zebra-stripes",
+  "glitter-star",
 ];
 
 const VALID_LAYOUTS: LayoutId[] = [

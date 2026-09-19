@@ -1,11 +1,11 @@
 import type { StripThemeId } from "@/types";
 import type { ThemeDef } from "@/lib/themes/types";
 import { streamingCard } from "@/lib/themes/streaming-card";
-import { arcadeCorkboard } from "@/lib/themes/arcade-corkboard";
 import { boardingPass } from "@/lib/themes/boarding-pass";
 import { receipt } from "@/lib/themes/receipt";
-import { parAvion } from "@/lib/themes/par-avion";
 import { leopardScrapbook } from "@/lib/themes/leopard-scrapbook";
+import { zebraStripes } from "@/lib/themes/zebra-stripes";
+import { glitterStar } from "@/lib/themes/glitter-star";
 
 export type {
   CaptionTreatment,
@@ -22,11 +22,11 @@ export type {
 
 export const THEMES: ThemeDef[] = [
   streamingCard,
-  arcadeCorkboard,
   boardingPass,
   receipt,
-  parAvion,
   leopardScrapbook,
+  zebraStripes,
+  glitterStar,
 ];
 
 const THEME_MAP: Record<StripThemeId, ThemeDef> = THEMES.reduce(

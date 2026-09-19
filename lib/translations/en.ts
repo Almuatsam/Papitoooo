@@ -83,15 +83,14 @@ export const en = {
   } satisfies Record<FilterId, string>,
   themes: {
     "streaming-card": { label: "Streaming Card", tagline: "Clean card, waveform bar" },
-    "arcade-corkboard": { label: "Arcade Corkboard", tagline: "Neon maze, pinned & tilted" },
     "boarding-pass": { label: "Boarding Pass", tagline: "Perforated ticket, route fields" },
     receipt: { label: "Receipt", tagline: "Itemized header, barcode footer" },
-    "par-avion": { label: "Par Avion", tagline: "Airmail stripes, stamp & seal" },
     "leopard-scrapbook": { label: "Leopard Scrapbook", tagline: "Leopard scallops, sparkle stars & grid paper" },
+    "zebra-stripes": { label: "Zebra Stripes", tagline: "Bold black & white stripes, hot pink caption" },
+    "glitter-star": { label: "Glitter Star", tagline: "Hot pink sequins & a chrome star" },
   } satisfies Record<StripThemeId, { label: string; tagline: string }>,
   themeCategories: {
     "print-ticket": "Print & Ticket",
-    "bold-loud": "Bold & Loud",
     minimal: "Minimal",
     playful: "Playful",
   } satisfies Record<ThemeCategoryId, string>,

@@ -1,5 +1,7 @@
 import { paintPattern } from "@/lib/decor/patterns";
 import { drawLeopardNineSliceBorder } from "@/lib/decor/assets/leopard-scallop-frame";
+import { drawZebraNineSliceBorder } from "@/lib/decor/assets/zebra-frame";
+import { drawGlitterNineSliceBorder } from "@/lib/decor/assets/glitter-frame";
 import type { ThemeColors, ThemeDef } from "@/lib/themes";
 
 /** Draws the theme's outer frame treatment onto `fCanvas`. Reuses whatever Fabric classes the caller already imported (dynamic-imported once per render in lib/strip-renderer.ts). Async only because "leopard-scallop" loads/processes a real PNG asset; every other style stays synchronous internally. */
@@ -149,6 +151,42 @@ export async function drawOuterFrame(
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("[outer-frame] leopard-scallop border failed, skipping", err);
+    }
+  } else if (strip.outerFrame.style === "zebra-frame") {
+    // The user's real zebra-print artwork (public/decor/zebra-frame.png),
+    // 9-sliced onto a canvas sized to the actual canvasW/canvasH every
+    // render — see lib/decor/assets/zebra-frame.ts. Simpler than the
+    // leopard border: a plain stretched edge on each side, no tiling.
+    try {
+      const bandCanvas = document.createElement("canvas");
+      bandCanvas.width = canvasW;
+      bandCanvas.height = canvasH;
+      const bandCtx = bandCanvas.getContext("2d");
+      if (bandCtx) {
+        await drawZebraNineSliceBorder(bandCtx, canvasW, canvasH);
+        fCanvas.add(new FabricImage(bandCanvas, { left: 0, top: 0, selectable: false, evented: false }));
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[outer-frame] zebra-frame border failed, skipping", err);
+    }
+  } else if (strip.outerFrame.style === "glitter-frame") {
+    // The user's real glitter-frame artwork (public/decor/glitter-frame.
+    // png), 9-sliced onto a canvas sized to the actual canvasW/canvasH
+    // every render — see lib/decor/assets/glitter-frame.ts for the
+    // asymmetric-border + one-oversized-corner generalization this needed.
+    try {
+      const bandCanvas = document.createElement("canvas");
+      bandCanvas.width = canvasW;
+      bandCanvas.height = canvasH;
+      const bandCtx = bandCanvas.getContext("2d");
+      if (bandCtx) {
+        await drawGlitterNineSliceBorder(bandCtx, canvasW, canvasH);
+        fCanvas.add(new FabricImage(bandCanvas, { left: 0, top: 0, selectable: false, evented: false }));
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[outer-frame] glitter-frame border failed, skipping", err);
     }
   }
 }

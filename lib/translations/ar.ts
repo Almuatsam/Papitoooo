@@ -82,15 +82,14 @@ export const ar: Translations = {
   },
   themes: {
     "streaming-card": { label: "بطاقة البث", tagline: "بطاقة نظيفة وموجة صوتية" },
-    "arcade-corkboard": { label: "لوحة الأركيد", tagline: "متاهة نيون، مثبتة ومائلة" },
     "boarding-pass": { label: "بطاقة الصعود", tagline: "تذكرة مثقوبة وحقول المسار" },
     receipt: { label: "الفاتورة", tagline: "ترويسة مفصلة وباركود" },
-    "par-avion": { label: "بريد جوي", tagline: "خطوط بريدية وختم وشمع" },
     "leopard-scrapbook": { label: "دفتر النمر", tagline: "تعرجات نمرية، نجوم وردية وورق مربعات" },
+    "zebra-stripes": { label: "خطوط الحمار الوحشي", tagline: "خطوط سوداء وبيضاء جريئة، تعليق وردي فاقع" },
+    "glitter-star": { label: "نجمة لامعة", tagline: "ترتر وردي فاقع ونجمة كروم" },
   },
   themeCategories: {
     "print-ticket": "طباعة وتذاكر",
-    "bold-loud": "جريء وصاخب",
     minimal: "بسيط",
     playful: "مرح",
   },

@@ -282,11 +282,6 @@ function renderTileCanvas(id: PatternId, colorA: string, colorB: string, scale =
   return canvas;
 }
 
-/** CSS `background-image` data URL for a pattern — used for DOM chrome. */
-export function patternDataUrl(id: PatternId, colorA: string, colorB: string, scale = 1): string {
-  return renderTileCanvas(id, colorA, colorB, scale).toDataURL("image/png");
-}
-
 /** Fills a rect on a canvas with a repeating pattern — used when baking the strip export. */
 export function paintPattern(
   ctx: CanvasRenderingContext2D,

@@ -1,7 +1,7 @@
 /**
  * Signature shape family for lib/decor/strip-pieces.ts — one bespoke,
  * genuinely-structural graphic per theme (barcode, receipt header/footer,
- * a boarding-pass route-field block, postage stamp, wax seal, ...). Unlike
+ * a boarding-pass route-field block and airplane motif, ...). Unlike
  * the straps/geometric/organic/handmade families, these aren't reusable
  * across themes — each exists because one of the reference photos needs
  * it. Drawn with plain canvas 2D (including `ctx.fillText`, same technique
@@ -352,97 +352,5 @@ export function receiptFooter(color: string, w = 600, h = 90, seed = 0): HTMLCan
   drawBarcodeBars(ctx, w * 0.15, thankSize * 1.5, w * 0.7, h * 0.3, seed);
   ctx.font = `700 ${wordmarkSize}px sans-serif`;
   ctx.fillText("PHOTO BOOTH", w / 2, h - wordmarkSize * 0.4);
-  return canvas;
-}
-
-/** A postage-stamp graphic with a perforated scalloped edge (punched via destination-out) and a small original plane-ish glyph. */
-export function postageStampPiece(color: string, w = 40, h = 48, seed = 0): HTMLCanvasElement {
-  const pad = 3;
-  const { canvas, ctx } = makeCanvas(w + pad * 2, h + pad * 2);
-  if (!ctx) return canvas;
-  ctx.fillStyle = color;
-  ctx.fillRect(pad, pad, w, h);
-  ctx.save();
-  ctx.globalCompositeOperation = "destination-out";
-  const step = 6;
-  for (let x = pad; x <= pad + w; x += step) {
-    ctx.beginPath();
-    ctx.arc(x, pad, 2.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(x, pad + h, 2.4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  for (let y = pad; y <= pad + h; y += step) {
-    ctx.beginPath();
-    ctx.arc(pad, y, 2.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(pad + w, y, 2.4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-  const rand = mulberry32(seed);
-  ctx.fillStyle = `rgba(255,255,255,${(0.6 + rand() * 0.2).toFixed(2)})`;
-  ctx.beginPath();
-  ctx.moveTo(pad + w * 0.5, pad + h * 0.25);
-  ctx.lineTo(pad + w * 0.75, pad + h * 0.65);
-  ctx.lineTo(pad + w * 0.5, pad + h * 0.55);
-  ctx.lineTo(pad + w * 0.25, pad + h * 0.65);
-  ctx.closePath();
-  ctx.fill();
-  return canvas;
-}
-
-/** An irregular wax-seal blob with a simple embossed relief mark — an original mark, not a real crest/brand. */
-export function waxSeal(color: string, size = 32, seed = 0): HTMLCanvasElement {
-  const { canvas, ctx } = makeCanvas(size, size);
-  if (!ctx) return canvas;
-  const rand = mulberry32(seed);
-  const cx = size / 2;
-  const cy = size / 2;
-  const sides = 10;
-  ctx.beginPath();
-  for (let i = 0; i < sides; i++) {
-    const angle = (Math.PI * 2 * i) / sides;
-    const r = size * 0.42 * (0.82 + rand() * 0.3);
-    const x = cx + Math.cos(angle) * r;
-    const y = cy + Math.sin(angle) * r;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.strokeStyle = "rgba(0,0,0,0.28)";
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.moveTo(cx - size * 0.14, cy - size * 0.16);
-  ctx.lineTo(cx - size * 0.14, cy + size * 0.16);
-  ctx.moveTo(cx - size * 0.14, cy - size * 0.16);
-  ctx.lineTo(cx + size * 0.1, cy - size * 0.16);
-  ctx.moveTo(cx - size * 0.14, cy);
-  ctx.lineTo(cx + size * 0.06, cy);
-  ctx.stroke();
-  return canvas;
-}
-
-/** An angled ink-stamp "APPROVED" mark with a rough rectangular outline — a postal cancellation-mark look. */
-export function approvedStamp(color: string, w = 90, h = 36, seed = 0): HTMLCanvasElement {
-  const { canvas, ctx } = makeCanvas(w, h);
-  if (!ctx) return canvas;
-  const rand = mulberry32(seed);
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  ctx.rotate((rand() * 2 - 1) * 0.15 - 0.12);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2.4;
-  ctx.strokeRect(-w * 0.46, -h * 0.42, w * 0.92, h * 0.84);
-  ctx.fillStyle = color;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = "900 13px Georgia, serif";
-  ctx.fillText("APPROVED", 0, 1);
-  ctx.restore();
   return canvas;
 }

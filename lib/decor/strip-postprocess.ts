@@ -1,6 +1,6 @@
 import { loadHtmlImage } from "@/lib/decor/load-image";
 
-/** Rotates a rasterised strip by `angleDeg`, padding the canvas so nothing gets clipped — a theme's `tiltDeg` (e.g. Arcade Corkboard's "pinned to a corkboard" look). */
+/** Rotates a rasterised strip by `angleDeg`, padding the canvas so nothing gets clipped — a theme's `tiltDeg` (e.g. a "pinned to a corkboard, slightly askew" look). */
 export async function applyTilt(dataUrl: string, angleDeg: number): Promise<string> {
   const img = await loadHtmlImage(dataUrl);
   const diag = Math.ceil(Math.sqrt(img.width * img.width + img.height * img.height));

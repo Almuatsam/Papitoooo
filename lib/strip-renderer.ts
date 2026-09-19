@@ -198,10 +198,13 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     // Painted onto an offscreen tile and added as a Fabric image (never onto
     // Fabric's own canvas element directly — renderAll() would wipe it).
     const isScallop = strip.outerFrame.style === "scallop";
-    // "leopard-scallop" also confines the background pattern to the area
-    // inside its border band — the border itself is opaque fur, drawn later
-    // in drawOuterFrame(), so nothing needs painting under it.
-    const insetsBackground = isScallop || strip.outerFrame.style === "leopard-scallop";
+    // "leopard-scallop" and "zebra-frame" also confine the background to the
+    // area inside their border band — the border itself is opaque real-asset
+    // artwork, drawn later in drawOuterFrame(), so nothing needs painting
+    // under it. Both rely on `strip.outerFrame.width` matching each asset's
+    // own measured border thickness (see their respective lib/decor/assets
+    // files) so this inset lines up with what's actually drawn there.
+    const insetsBackground = isScallop || strip.outerFrame.style === "leopard-scallop" || strip.outerFrame.style === "zebra-frame";
     const band = strip.outerFrame.width;
     const bgArea = insetsBackground
       ? { x: band, y: band, w: canvasW - band * 2, h: canvasH - band * 2 }
@@ -510,8 +513,9 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       }
       if (parts.length > 0 || hasOwnFixedLayout) {
         const label = parts.join("   ·   ");
+        const captionInsetLeft = strip.captionInsetLeft ?? 0;
         const captionCanvas = renderCaptionBitmap(
-          canvasW,
+          canvasW - captionInsetLeft,
           strip.bottomPad,
           label,
           colors,
@@ -523,7 +527,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
         );
         fCanvas.add(
           new FabricImage(captionCanvas, {
-            left: 0,
+            left: captionInsetLeft,
             top: canvasH - strip.bottomPad,
             selectable: false,
             evented: false,

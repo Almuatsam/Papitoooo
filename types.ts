@@ -13,11 +13,11 @@ export type FilterId =
 
 export type StripThemeId =
   | "streaming-card"
-  | "arcade-corkboard"
   | "boarding-pass"
   | "receipt"
-  | "par-avion"
-  | "leopard-scrapbook";
+  | "leopard-scrapbook"
+  | "zebra-stripes"
+  | "glitter-star";
 
 /** How many photos a strip has and how they're arranged — independent of theme. */
 export type LayoutId =

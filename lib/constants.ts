@@ -1,6 +1,3 @@
-/** Number of photos in a strip. The whole experience is built around four. */
-export const PHOTO_COUNT = 4;
-
 /** Seconds counted down before each shot (3 → 2 → 1). */
 export const COUNTDOWN_SECONDS = 3;
 
@@ -16,6 +13,3 @@ export const PHOTO_HEIGHT = 450;
 
 /** Multiplier applied on download for a print-resolution PNG. */
 export const EXPORT_SCALE = 3;
-
-/** Capture aspect ratio (width / height) — matches PHOTO_WIDTH / PHOTO_HEIGHT. */
-export const CAPTURE_ASPECT = PHOTO_WIDTH / PHOTO_HEIGHT;

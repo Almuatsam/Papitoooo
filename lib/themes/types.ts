@@ -76,9 +76,6 @@ export type StripPieceKind =
   | "route-field-block"
   | "receipt-header"
   | "receipt-footer"
-  | "postage-stamp-piece"
-  | "wax-seal"
-  | "approved-stamp"
   | "airplane-motif"
   // ---- real composited asset (SVG loaded as-is, not hand-drawn) -----------
   | "asset-svg";
@@ -186,8 +183,18 @@ export interface ThemeDef {
     /** CSS custom property holding the canvas-ready font-family list. */
     captionFontVar: string;
     captionFontSize: number;
+    /**
+     * Shrinks the caption bitmap's width and shifts it right by this many
+     * px, instead of spanning/centering across the full `canvasW` — for a
+     * theme whose outer frame has a large asymmetric decoration (Glitter
+     * Star's bottom-left chrome star) sitting in the caption's row that a
+     * dead-centered caption would otherwise render on top of. Leave unset
+     * (every theme except Glitter Star) for the default full-width,
+     * fully-centered caption.
+     */
+    captionInsetLeft?: number;
     /** Outer frame baked around the whole strip. "ticket" = a perforation line along one edge; "airmail" = a diagonal striped band around all edges. */
-    outerFrame: { style: "none" | "solid" | "dashed" | "chrome" | "scallop" | "ticket" | "airmail" | "leopard-scallop"; width: number };
+    outerFrame: { style: "none" | "solid" | "dashed" | "chrome" | "scallop" | "ticket" | "airmail" | "leopard-scallop" | "zebra-frame" | "glitter-frame"; width: number };
     /**
      * A solid-color band across the very top of the strip (Boarding Pass's
      * "BOARDING PASS" bar) — drawn full-width, `height` tall, before the
@@ -201,9 +208,9 @@ export interface ThemeDef {
     headerBand?: { height: number; label: string };
     /**
      * Small authored rotation (degrees) applied to the fully-composited
-     * strip as a final raster postprocessing step — e.g. Arcade Corkboard's
-     * "pinned to a corkboard" look. A tiny seeded jitter is added on top so
-     * it isn't identical every session, while staying pixel-identical
+     * strip as a final raster postprocessing step — e.g. a "pinned to a
+     * corkboard, slightly askew" look. A tiny seeded jitter is added on top
+     * so it isn't identical every session, while staying pixel-identical
      * between a given session's own preview and download.
      */
     tiltDeg?: number;

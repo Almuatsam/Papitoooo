@@ -70,14 +70,11 @@ import {
 import { crumpledPaper, dieCutPiece, foldedCorner, paperTab, photoFragment, stickerCorner } from "@/lib/decor/shapes/handmade";
 import {
   airplaneMotif,
-  approvedStamp,
   barcode,
   nowPlayingPanel,
-  postageStampPiece,
   receiptFooter,
   receiptHeader,
   routeFieldBlock,
-  waxSeal,
 } from "@/lib/decor/shapes/signature";
 
 export { mulberry32, seedFrom } from "@/lib/decor/seed";
@@ -152,9 +149,6 @@ const DEFAULT_SIZE: Record<StripPieceKind, [number, number]> = {
   "route-field-block": [120, 44],
   "receipt-header": [820, 110],
   "receipt-footer": [820, 90],
-  "postage-stamp-piece": [46, 54],
-  "wax-seal": [32, 32],
-  "approved-stamp": [90, 36],
   "airplane-motif": [260, 180],
   // "asset-svg" pieces are loaded+sized directly in lib/strip-renderer.ts
   // (real SVG art, natural aspect preserved) and never reach drawShape()/
@@ -300,12 +294,6 @@ function drawShape(
       return receiptHeader(color, w, h);
     case "receipt-footer":
       return receiptFooter(color, w, h, seed);
-    case "postage-stamp-piece":
-      return postageStampPiece(color, w, h, seed);
-    case "wax-seal":
-      return waxSeal(color, w, seed);
-    case "approved-stamp":
-      return approvedStamp(color, w, h, seed);
 
     default:
       return offsetRect(color, w, h);
