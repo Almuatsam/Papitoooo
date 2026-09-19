@@ -4,6 +4,7 @@ export const leopardScrapbook: ThemeDef = {
   id: "leopard-scrapbook",
   label: "Leopard Scrapbook",
   tagline: "Leopard scallops, sparkle stars & grid paper",
+  features: { stickers: false },
   colors: {
     paper: "#f2ede1",
     panel: "#f2ede1",

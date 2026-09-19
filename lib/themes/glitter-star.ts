@@ -5,6 +5,7 @@ export const glitterStar: ThemeDef = {
   id: "glitter-star",
   label: "Glitter Star",
   tagline: "Hot pink sequins & a chrome star",
+  features: { stickers: false },
   colors: {
     paper: "#ffffff",
     panel: "#ffffff",

@@ -5,7 +5,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { FilterCarousel } from "@/components/camera/filter-carousel";
 import { StickerTray } from "@/components/result/sticker-tray";
 import { ThemeBrowser } from "@/components/result/theme-browser";
-import { BORDER_SWATCHES, BG_SWATCHES, ACCENT_SWATCHES } from "@/lib/themes";
+import { BORDER_SWATCHES, BG_SWATCHES, ACCENT_SWATCHES, getTheme } from "@/lib/themes";
 import type { SessionSettings } from "@/types";
 
 interface CustomizerProps {
@@ -59,6 +59,7 @@ function Swatches({
 
 export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: CustomizerProps) {
   const { t } = useLanguage();
+  const hasStickers = getTheme(settings.themeId).features?.stickers !== false;
 
   return (
     <div className="space-y-6">
@@ -158,9 +159,11 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
         </button>
       </Field>
 
-      <Field label={t.result.stickers}>
-        <StickerTray themeId={settings.themeId} onAddSvg={onAddStickerSvg} onAddEmoji={onAddEmoji} />
-      </Field>
+      {hasStickers && (
+        <Field label={t.result.stickers}>
+          <StickerTray themeId={settings.themeId} onAddSvg={onAddStickerSvg} onAddEmoji={onAddEmoji} />
+        </Field>
+      )}
     </div>
   );
 }

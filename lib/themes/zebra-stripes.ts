@@ -4,6 +4,7 @@ export const zebraStripes: ThemeDef = {
   id: "zebra-stripes",
   label: "Zebra Stripes",
   tagline: "Bold black & white stripes, hot pink caption",
+  features: { stickers: false },
   colors: {
     paper: "#ffffff",
     panel: "#ffffff",

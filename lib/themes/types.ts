@@ -166,6 +166,11 @@ export interface ThemeDef {
   id: StripThemeId;
   label: string;
   tagline: string;
+  /** Editor-UI capability flags for this theme — not part of strip compositing, just what the customizer shows. */
+  features?: {
+    /** false = the editor hides the "Stickers" panel entirely for this theme (its sticker pack/system is untouched). Default true. */
+    stickers?: boolean;
+  };
   colors: ThemeColors;
   strip: {
     outerPad: number;
