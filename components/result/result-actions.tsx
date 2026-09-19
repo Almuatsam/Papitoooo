@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Download, RefreshCw, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/use-language";
-import { downloadImage, stripFilename } from "@/lib/download";
+import { saveImage } from "@/lib/download";
 
 interface ResultActionsProps {
   renderFullRes: () => Promise<string>;
@@ -22,7 +22,7 @@ export function ResultActions({ renderFullRes, onRetake, onStartOver, disabled }
     setBusy(true);
     try {
       const url = await renderFullRes();
-      downloadImage(url, stripFilename());
+      await saveImage(url);
     } finally {
       setBusy(false);
     }
