@@ -11,6 +11,8 @@ Everything runs in the browser. **Your photos never leave your device** —
 there is no server, no upload, no account. English and Arabic (full RTL) are
 both first-class.
 
+![Photo Booth home screen](docs/screenshot-home.png)
+
 ## Stack
 
 - Next.js 14 (App Router) · React 18 · TypeScript
@@ -58,14 +60,12 @@ side). Layout is independent of theme — any theme can render any layout.
 
 ## Themes (strip decoration)
 
-Seven themes, each grounded in a real reference and each with its own
-sticker pack, signature decoration, and background treatment: **Festival
-Poster**, **Streaming Card**, **Arcade Corkboard** (composites real vector
-art — cabinet, joystick — instead of hand-drawn primitives), **Doodle
-Diary**, **Boarding Pass**, **Receipt**, **Par Avion**. A theme skins the
-photo strip itself; the app shell around it (camera screen, result screen,
-the booth hero) keeps one consistent dark chrome/magenta identity regardless
-of which theme is active.
+Six themes, each grounded in a real reference and each with its own sticker
+pack, signature decoration, and background treatment: **Streaming Card**,
+**Boarding Pass**, **Receipt**, **Leopard Scrapbook**, **Zebra Stripes**,
+**Glitter Star**. A theme skins the photo strip itself; the app shell around
+it (camera screen, result screen, the booth hero) keeps one consistent dark
+chrome/magenta identity regardless of which theme is active.
 
 ## How it works
 
@@ -75,7 +75,7 @@ of which theme is active.
 | Camera stream lifecycle | `hooks/use-camera.ts`, `lib/camera-utils.ts` |
 | Capture flow (countdown → flash → capture → review, shot count from the chosen layout) | `hooks/use-photo-session.ts` |
 | Layout definitions (arrangement, box geometry) | `lib/layouts/*` |
-| Filters (CSS string, same for preview and export) | `lib/filters.ts` |
+| Filters (CSS string plus optional translucent color-overlay wash, same for preview and export) | `lib/filters.ts` |
 | Theme definitions (piece pools, patterns, textures) | `lib/themes/*` |
 | App-shell chrome (per-screen decoration slots, theme-independent) | `components/theme/*`, `components/theme/decor/*` |
 | Decorative patterns / textures / shapes / real asset compositing | `lib/decor/*` |

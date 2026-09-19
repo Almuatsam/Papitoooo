@@ -17,6 +17,11 @@ export function FilterCarousel({ value, onChange, disabled }: FilterCarouselProp
   return (
     <div
       className="no-scrollbar flex gap-2 overflow-x-auto px-1 py-1"
+      style={{
+        maskImage: "linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent)",
+        WebkitMaskImage:
+          "linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent)",
+      }}
       role="radiogroup"
       aria-label={t.camera.filter}
     >
@@ -31,8 +36,8 @@ export function FilterCarousel({ value, onChange, disabled }: FilterCarouselProp
             disabled={disabled}
             onClick={() => onChange(filter.id)}
             className={cn(
-              "facet-sm shrink-0 border-2 border-line px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-40",
-              active ? "bg-accent text-white" : "bg-panel text-ink hover:bg-white/10",
+              "facet-sm inline-flex min-h-11 shrink-0 items-center justify-center border-2 border-line px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-40",
+              active ? "bg-accent text-paper" : "bg-panel text-ink hover:bg-white/10",
             )}
           >
             {t.filters[filter.id]}
