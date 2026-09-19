@@ -1,0 +1,19 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="7" fill="url(#booth-bg)" />
+  <rect x="6" y="13" width="20" height="13" rx="3" fill="url(#booth-chrome)" />
+  <rect x="12.5" y="9.5" width="7" height="4" rx="1.2" fill="url(#booth-chrome)" />
+  <circle cx="16" cy="19.5" r="5.5" fill="#1c1420" />
+  <circle cx="16" cy="19.5" r="4.3" fill="none" stroke="#ff2ec4" stroke-width="1.1" />
+  <circle cx="16" cy="19.5" r="2" fill="#ff2ec4" />
+  <defs>
+    <linearGradient id="booth-bg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1c1420" />
+      <stop offset="1" stop-color="#0a0710" />
+    </linearGradient>
+    <linearGradient id="booth-chrome" x1="6" y1="9.5" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#c9cdd6" />
+      <stop offset="0.5" stop-color="#8d919b" />
+      <stop offset="1" stop-color="#2b2d33" />
+    </linearGradient>
+  </defs>
+</svg>
