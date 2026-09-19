@@ -1,4 +1,5 @@
 import { getFilter, type ColorOverlay } from "@/lib/filters";
+import { applyCssFilterToCanvas, canvasFilterSupported } from "@/lib/canvas-filter";
 import { getTheme, type PieceEdge, type StripPiecePlacement, type ThemeColors } from "@/lib/themes";
 import { getLayout, type Box } from "@/lib/layouts";
 import { paintPattern } from "@/lib/decor/patterns";
@@ -107,7 +108,9 @@ async function prepFrame(
   const dx = (w - dw) / 2;
   const dy = (h - dh) / 2;
 
-  if (css && css !== "none") ctx.filter = css;
+  const hasFilter = Boolean(css) && css !== "none";
+  const nativeFilter = hasFilter && canvasFilterSupported();
+  if (nativeFilter) ctx.filter = css;
   try {
     ctx.drawImage(img, dx, dy, dw, dh);
   } catch (err) {
@@ -115,6 +118,8 @@ async function prepFrame(
     console.error("[strip-renderer] drawImage failed for a captured frame; using a placeholder", err);
     return placeholderFrame(w, h, radius, "#d9d9d9");
   }
+  // Safari ignores ctx.filter, so grade the pixels ourselves there.
+  if (hasFilter && !nativeFilter) applyCssFilterToCanvas(ctx, w, h, css);
 
   if (overlay) {
     // Reset first: the wash itself should stay a flat, un-blurred color —

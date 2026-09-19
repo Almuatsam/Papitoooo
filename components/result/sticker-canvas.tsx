@@ -71,6 +71,10 @@ export const StickerCanvas = forwardRef<StickerCanvasHandle, StickerCanvasProps>
           height: dims.height,
           selection: false,
           preserveObjectStacking: true,
+          // Fabric's default (`false`) sets touch-action: none and preventDefault()s every
+          // touch, so the page can't be scrolled by dragging over the strip. With `true`
+          // it only blocks scrolling when a touch lands on the already-selected sticker.
+          allowTouchScrolling: true,
         });
         fabricRef.current = canvas;
 
