@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { renderStrip } from "@/lib/strip-renderer";
 import { PHOTO_HEIGHT, PHOTO_WIDTH } from "@/lib/constants";
 import { getLayout } from "@/lib/layouts";
-import type { Lang, LayoutId, StripThemeId } from "@/types";
+import type { FilterId, Lang, LayoutId, StripThemeId } from "@/types";
 
 function placeholderFrame(seed: number): string {
   const canvas = document.createElement("canvas");
@@ -49,6 +49,7 @@ export default function DevPreviewPage() {
     const accentColor = sp.get("accent") ?? "";
     const seed = Number(sp.get("seed") ?? "0.42");
     const lang = (sp.get("lang") ?? "en") as Lang;
+    const filterId = (sp.get("filter") ?? "natural") as FilterId;
     setLabel(`${themeId} / ${layoutId}`);
 
     const count = getLayout(layoutId).photoCount;
@@ -56,7 +57,7 @@ export default function DevPreviewPage() {
 
     renderStrip({
       frames,
-      filterId: "natural",
+      filterId,
       themeId,
       layoutId,
       borderColor: "",

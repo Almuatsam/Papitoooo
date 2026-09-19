@@ -5,12 +5,16 @@ import { Loader2 } from "lucide-react";
 import type { CameraStatus } from "@/hooks/use-camera";
 import { useLanguage } from "@/hooks/use-language";
 import { ThemeChrome } from "@/components/theme/theme-decor";
+import { ColorOverlayLayer } from "@/components/camera/color-overlay-layer";
+import type { ColorOverlay } from "@/lib/filters";
 
 interface CameraStageProps {
   videoRef: RefObject<HTMLVideoElement>;
   status: CameraStatus;
   /** CSS filter string applied live to the preview. */
   filterCss: string;
+  /** Translucent color wash for "color overlay" filters, painted on top of the video. */
+  filterOverlay?: ColorOverlay;
   children?: ReactNode;
 }
 
@@ -18,7 +22,7 @@ interface CameraStageProps {
  * The camera preview box. 4:3, mirrored, object-cover — the framing here is what
  * the captured photo and the strip will show.
  */
-export function CameraStage({ videoRef, status, filterCss, children }: CameraStageProps) {
+export function CameraStage({ videoRef, status, filterCss, filterOverlay, children }: CameraStageProps) {
   const { t } = useLanguage();
 
   return (
@@ -31,6 +35,7 @@ export function CameraStage({ videoRef, status, filterCss, children }: CameraSta
         className="h-full w-full -scale-x-100 object-cover"
         style={{ filter: filterCss === "none" ? undefined : filterCss }}
       />
+      <ColorOverlayLayer overlay={filterOverlay} />
 
       {status !== "ready" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black text-ink">

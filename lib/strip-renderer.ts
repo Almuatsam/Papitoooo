@@ -1,4 +1,4 @@
-import { filterCss } from "@/lib/filters";
+import { getFilter, type ColorOverlay } from "@/lib/filters";
 import { getTheme, type PieceEdge, type StripPiecePlacement, type ThemeColors } from "@/lib/themes";
 import { getLayout, type Box } from "@/lib/layouts";
 import { paintPattern } from "@/lib/decor/patterns";
@@ -75,6 +75,7 @@ async function prepFrame(
   h: number,
   radius: number,
   css: string,
+  overlay?: ColorOverlay,
 ): Promise<HTMLCanvasElement> {
   let img: HTMLImageElement;
   try {
@@ -114,6 +115,18 @@ async function prepFrame(
     console.error("[strip-renderer] drawImage failed for a captured frame; using a placeholder", err);
     return placeholderFrame(w, h, radius, "#d9d9d9");
   }
+
+  if (overlay) {
+    // Reset first: the wash itself should stay a flat, un-blurred color —
+    // it must not inherit the photo's own CSS filter (e.g. blur/hue-rotate).
+    ctx.filter = "none";
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = overlay.opacity;
+    ctx.fillStyle = overlay.color;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalAlpha = 1;
+  }
+
   return canvas;
 }
 
@@ -184,7 +197,9 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
   const theme = getTheme(themeId);
   const strip = theme.strip;
   const colors = theme.colors;
-  const css = filterCss(filterId);
+  const filterDef = getFilter(filterId);
+  const css = filterDef.css;
+  const overlay = filterDef.overlay;
   const paper = bgColor || colors.paper;
   const keyline = borderColor || colors.ink;
 
@@ -398,7 +413,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     for (let i = 0; i < boxes.length; i++) {
       const box = boxes[i];
       const src = frames[i] ?? frames[frames.length - 1];
-      const prepped = await prepFrame(src, box.width, box.height, strip.radius, css);
+      const prepped = await prepFrame(src, box.width, box.height, strip.radius, css, overlay);
       const angle = strip.photoRotationJitter ? ROTATION_JITTER[i % ROTATION_JITTER.length] : 0;
       const cx = box.left + box.width / 2;
       const cy = box.top + box.height / 2;

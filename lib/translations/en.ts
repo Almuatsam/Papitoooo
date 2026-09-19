@@ -80,6 +80,9 @@ export const en = {
     retro: "Retro",
     soft: "Soft",
     contrast: "High contrast",
+    blue: "Blue",
+    red: "Red",
+    purple: "Purple",
   } satisfies Record<FilterId, string>,
   themes: {
     "streaming-card": { label: "Streaming Card", tagline: "Clean card, waveform bar" },

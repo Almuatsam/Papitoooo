@@ -79,6 +79,9 @@ export const ar: Translations = {
     retro: "ريترو",
     soft: "ناعم",
     contrast: "تباين عالٍ",
+    blue: "أزرق",
+    red: "أحمر",
+    purple: "بنفسجي",
   },
   themes: {
     "streaming-card": { label: "بطاقة البث", tagline: "بطاقة نظيفة وموجة صوتية" },

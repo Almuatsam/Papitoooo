@@ -14,7 +14,8 @@ import { useCamera } from "@/hooks/use-camera";
 import { usePhotoSession } from "@/hooks/use-photo-session";
 import { useSession } from "@/hooks/use-session-store";
 import { useLanguage } from "@/hooks/use-language";
-import { filterCss } from "@/lib/filters";
+import { ColorOverlayLayer } from "@/components/camera/color-overlay-layer";
+import { getFilter } from "@/lib/filters";
 import { getLayout } from "@/lib/layouts";
 
 export function CameraScreen() {
@@ -28,7 +29,8 @@ export function CameraScreen() {
     void start();
   }, [start]);
 
-  const css = filterCss(settings.filterId);
+  const filter = getFilter(settings.filterId);
+  const css = filter.css;
   const ready = status === "ready";
 
   return (
@@ -58,7 +60,7 @@ export function CameraScreen() {
           <CameraErrorPanel error={error} onRetry={() => void start()} />
         </div>
       ) : (
-        <CameraStage videoRef={videoRef} status={status} filterCss={css}>
+        <CameraStage videoRef={videoRef} status={status} filterCss={css} filterOverlay={filter.overlay}>
           <SessionHud
             filterLabel={t.filters[settings.filterId]}
             captured={session.frames.length}
@@ -69,13 +71,16 @@ export function CameraScreen() {
           {session.phase === "countdown" && <CountdownOverlay value={session.count} />}
           {session.phase === "flash" && <FlashOverlay shotKey={session.shotIndex} />}
           {session.phase === "review" && session.lastFrame && (
-            // eslint-disable-next-line @next/next/no-img-element -- captured-frame data URL, shown for a beat
-            <img
-              src={session.lastFrame}
-              alt=""
-              className="absolute inset-0 z-30 h-full w-full object-cover"
-              style={{ filter: css === "none" ? undefined : css }}
-            />
+            <div className="absolute inset-0 z-30">
+              {/* eslint-disable-next-line @next/next/no-img-element -- captured-frame data URL, shown for a beat */}
+              <img
+                src={session.lastFrame}
+                alt=""
+                className="h-full w-full object-cover"
+                style={{ filter: css === "none" ? undefined : css }}
+              />
+              <ColorOverlayLayer overlay={filter.overlay} />
+            </div>
           )}
         </CameraStage>
       )}

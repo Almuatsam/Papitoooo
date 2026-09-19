@@ -9,7 +9,10 @@ export type FilterId =
   | "film"
   | "retro"
   | "soft"
-  | "contrast";
+  | "contrast"
+  | "blue"
+  | "red"
+  | "purple";
 
 export type StripThemeId =
   | "streaming-card"

@@ -3,16 +3,33 @@ import type { FilterId } from "@/types";
 /**
  * Photo filters. The reference project had none — these are new.
  *
- * A filter is a single CSS `filter` string. The same string drives the live
- * `<video>` preview (inline style) and the exported strip (Canvas 2D
- * `ctx.filter` while each photo is drawn), so what you preview is exactly what
- * you download. Every one of the four photos carries the filter — it is baked
- * into the pixels, not laid over the finished strip.
+ * A filter is a CSS `filter` string (`css`) plus an optional translucent
+ * color wash (`overlay`) painted on top of it. The same definition drives
+ * the live `<video>` preview (inline `filter` style + an overlay div) and
+ * the exported strip (Canvas 2D `ctx.filter` + a `source-over` fill while
+ * each photo is drawn), so what you preview is exactly what you download.
+ * Every one of the four photos carries the filter — it is baked into the
+ * pixels, not laid over the finished strip.
  */
+/** A solid-color translucent wash painted over the photo, on top of `css`. */
+export interface ColorOverlay {
+  /** CSS hex/rgb color of the wash. */
+  color: string;
+  /** 0-1 opacity of the wash. */
+  opacity: number;
+}
+
 export interface FilterDef {
   id: FilterId;
   label: string;
   css: string;
+  /** Present only for "color overlay" style filters — a tint wash on top of the CSS filter. */
+  overlay?: ColorOverlay;
+}
+
+/** Builds a color-overlay filter: the photo renders as-is (or with `css`), then this color washes over it at `opacity`. */
+function colorOverlayFilter(id: FilterId, label: string, color: string, opacity: number, css = "none"): FilterDef {
+  return { id, label, css, overlay: { color, opacity } };
 }
 
 export const FILTERS: FilterDef[] = [
@@ -49,6 +66,9 @@ export const FILTERS: FilterDef[] = [
     css: "contrast(0.9) brightness(1.09) saturate(0.94) blur(0.4px)",
   },
   { id: "contrast", label: "High contrast", css: "contrast(1.42) saturate(1.16)" },
+  colorOverlayFilter("blue", "Blue", "#2d77ed", 0.3),
+  colorOverlayFilter("red", "Red", "#cc0606", 0.3),
+  colorOverlayFilter("purple", "Purple", "#6311a6", 0.3),
 ];
 
 const FILTER_MAP: Record<FilterId, FilterDef> = FILTERS.reduce(
