@@ -27,18 +27,41 @@ export interface ColorOverlay {
 }
 
 /**
- * A screen-blended, blurred-and-brightened copy of the photo composited back
- * on top of itself — the "bright areas bloom outward" glow look that a flat
- * filter can't produce. See `prepFrame` in lib/strip-renderer.ts for the
- * actual draw/blur/composite steps.
+ * One screen-blended, blurred-and-brightened copy of the photo composited
+ * back on top of itself — the "bright areas bloom outward" glow look that a
+ * flat filter can't produce. See `makeGlowLayer` in lib/strip-renderer.ts.
+ */
+export interface GlowLayer {
+  /**
+   * Blur radius as a *fraction* of the photo's rendered width, not a fixed
+   * px value — so a tiny grid-6 cell and a large single-portrait photo get
+   * proportionally the same haze instead of the blur going negligible on
+   * one and overwhelming on the other.
+   */
+  blurFrac: number;
+  /**
+   * How much the photo is downscaled before blurring (e.g. `4` = blur at
+   * 1/4 size, then draw back up to full size). Blurring at native
+   * resolution for a wide/soft pass is both slow — especially on the Safari
+   * pixel-fallback path, which convolves by hand — and looks tighter than
+   * intended; blurring small and upscaling is the standard cheap-bloom trick
+   * and reads as a *softer*, more diffuse glow, not just a faster one.
+   */
+  downscale: number;
+  /** Brightness multiplier applied to this layer before it's screened back on. */
+  brightness: number;
+  /** 0-1 opacity this layer screens on at. */
+  opacity: number;
+}
+
+/**
+ * A glow/bloom made of one or more `GlowLayer`s, composited in order. Real
+ * bloom has both a tight bright core and a wider soft halo around it — a
+ * single blur radius alone tends to read as "soft focus" rather than
+ * "glowing", so `cybercore` (below) layers a tight pass and a wide one.
  */
 export interface GlowEffect {
-  /** Blur radius (px, at the photo's native render size) for the bloom layer. */
-  blurPx: number;
-  /** Brightness multiplier applied to the blurred copy before it's screened back on. */
-  brightness: number;
-  /** 0-1 opacity of the screen-blended bloom layer. */
-  opacity: number;
+  layers: GlowLayer[];
 }
 
 export interface FilterDef {
@@ -99,13 +122,23 @@ export const FILTERS: FilterDef[] = [
     // Effect 1, second half: a slight contrast/saturation pullback so the
     // warm grade below reads as hazy/nostalgic instead of just "warm".
     css: "contrast(0.93) saturate(0.9) brightness(1.03)",
-    // Effect 1, first half: a warm yellow-orange grade via a soft-light wash
-    // — this shifts tone instead of flattening the photo under a flat color
-    // the way a `source-over` overlay (blue/red/purple, above) would.
-    overlay: { color: "#ffb454", opacity: 0.4, blend: "soft-light" },
-    // Effect 2: the blurred+brightened copy screened back on top is what
-    // actually produces the "highlights glow" look — see prepFrame().
-    glow: { blurPx: 18, brightness: 1.4, opacity: 0.45 },
+    // Effect 1, first half: a yellow-*green* grade (old fluorescent light /
+    // faded VHS, not clean warm yellow) via a soft-light wash — this shifts
+    // tone instead of flattening the photo under a flat color the way a
+    // `source-over` overlay (blue/red/purple, above) would. Deliberately
+    // distinct from Vintage (a plain `sepia()` CSS grade, no overlay, no
+    // glow at all — see above): green-shifted hue here vs. Vintage's
+    // straight brown/sepia, so the two don't converge.
+    overlay: { color: "#b8c26a", opacity: 0.4, blend: "soft-light" },
+    // Effect 2: two screened bloom passes — a tighter, brighter "core" and a
+    // much wider, softer "halo" — is what actually reads as glowing instead
+    // of merely soft. See makeGlowLayer() in strip-renderer.ts.
+    glow: {
+      layers: [
+        { blurFrac: 0.05, downscale: 3, brightness: 1.6, opacity: 0.45 },
+        { blurFrac: 0.12, downscale: 8, brightness: 1.35, opacity: 0.4 },
+      ],
+    },
   },
 ];
 

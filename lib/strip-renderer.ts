@@ -1,4 +1,4 @@
-import { getFilter, type ColorOverlay, type GlowEffect } from "@/lib/filters";
+import { getFilter, type ColorOverlay, type GlowEffect, type GlowLayer } from "@/lib/filters";
 import { applyCssFilterToCanvas, canvasFilterSupported } from "@/lib/canvas-filter";
 import { getTheme, type PieceEdge, type StripPiecePlacement, type ThemeColors } from "@/lib/themes";
 import { getLayout, type Box } from "@/lib/layouts";
@@ -70,23 +70,41 @@ function placeholderFrame(w: number, h: number, radius: number, color: string): 
 }
 
 /**
- * Renders a blurred, brightened copy of `base` and returns it as its own
- * canvas — the "bloom" layer for a `GlowEffect`. Blur uses the same
- * `ctx.filter` + Safari pixel-fallback split as the photo's own CSS filter
- * (see `canvasFilterSupported`), since Safari silently no-ops `ctx.filter`.
+ * Renders a blurred, brightened copy of `base` at full (w, h) size — one
+ * bloom pass for a `GlowEffect`. Blurs at a *downscaled* size and draws back
+ * up rather than blurring at native resolution: cheap-bloom's standard
+ * trick, and it needs to be cheap here specifically because a wide/soft
+ * pass's blur radius, converted to actual px, would be large enough that the
+ * Safari pixel-fallback path (a hand-rolled convolution — see
+ * `canvasFilterSupported`) could take seconds on a full-resolution photo.
+ * Downscaling first also reads as a softer, more diffuse glow than the same
+ * radius blurred at full size, which is what a "halo" pass wants anyway.
  */
-function makeGlowLayer(base: HTMLCanvasElement, w: number, h: number, glow: GlowEffect): HTMLCanvasElement {
+function makeGlowLayer(base: HTMLCanvasElement, w: number, h: number, layer: GlowLayer): HTMLCanvasElement {
+  const dw = Math.max(1, Math.round(w / layer.downscale));
+  const dh = Math.max(1, Math.round(h / layer.downscale));
+
+  const small = document.createElement("canvas");
+  small.width = dw;
+  small.height = dh;
+  const sctx = small.getContext("2d");
+  if (!sctx) return small;
+
+  // blurFrac is a fraction of the *downscaled* width, so the actual blur
+  // radius stays small in absolute px (cheap) while the later upscale back
+  // to (w, h) magnifies it proportionally to the photo's real render size.
+  const css = `blur(${layer.blurFrac * dw}px) brightness(${layer.brightness})`;
+  const nativeFilter = canvasFilterSupported();
+  if (nativeFilter) sctx.filter = css;
+  sctx.drawImage(base, 0, 0, dw, dh);
+  if (!nativeFilter) applyCssFilterToCanvas(sctx, dw, dh, css);
+
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) return canvas;
-
-  const css = `blur(${glow.blurPx}px) brightness(${glow.brightness})`;
-  const nativeFilter = canvasFilterSupported();
-  if (nativeFilter) ctx.filter = css;
-  ctx.drawImage(base, 0, 0, w, h);
-  if (!nativeFilter) applyCssFilterToCanvas(ctx, w, h, css);
+  ctx.drawImage(small, 0, 0, w, h);
   return canvas;
 }
 
@@ -158,16 +176,21 @@ async function prepFrame(
   }
 
   if (glow) {
-    // Bloom: a blurred, brightened copy of the graded photo screened back on
-    // top. "screen" is what makes bright areas bloom outward while leaving
-    // dark areas nearly untouched — a flat overlay alone can't do this.
-    const bloom = makeGlowLayer(canvas, w, h, glow);
-    ctx.filter = "none";
-    ctx.globalCompositeOperation = "screen";
-    ctx.globalAlpha = glow.opacity;
-    ctx.drawImage(bloom, 0, 0, w, h);
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = "source-over";
+    // Bloom: one or more blurred, brightened copies of the graded photo
+    // screened back on top. "screen" is what makes bright areas bloom
+    // outward while leaving dark areas nearly untouched — a flat overlay
+    // alone can't do this. Each layer is blurred from the *same* graded
+    // `canvas` (not the previous layer), so layers stack independently
+    // instead of compounding each other's blur.
+    for (const layer of glow.layers) {
+      const bloom = makeGlowLayer(canvas, w, h, layer);
+      ctx.filter = "none";
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = layer.opacity;
+      ctx.drawImage(bloom, 0, 0, w, h);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
   }
 
   return canvas;
