@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { HomeScreen } from "@/components/screens/home-screen";
 import { CameraScreen } from "@/components/screens/camera-screen";
 import { ResultScreen } from "@/components/screens/result-screen";
+import { CreditTag } from "@/components/credit-tag";
 
 function Router() {
   const { view } = useSession();
@@ -14,6 +15,7 @@ function Router() {
       {view === "home" && <HomeScreen />}
       {view === "camera" && <CameraScreen />}
       {view === "result" && <ResultScreen />}
+      <CreditTag />
     </main>
   );
 }

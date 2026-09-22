@@ -12,7 +12,8 @@ export type FilterId =
   | "contrast"
   | "blue"
   | "red"
-  | "purple";
+  | "purple"
+  | "cybercore";
 
 export type StripThemeId =
   | "streaming-card"

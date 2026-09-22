@@ -11,11 +11,33 @@ import type { FilterId } from "@/types";
  * Every one of the four photos carries the filter — it is baked into the
  * pixels, not laid over the finished strip.
  */
-/** A solid-color translucent wash painted over the photo, on top of `css`. */
+/** A translucent color wash painted over the photo, on top of `css`. */
 export interface ColorOverlay {
   /** CSS hex/rgb color of the wash. */
   color: string;
   /** 0-1 opacity of the wash. */
+  opacity: number;
+  /**
+   * How the wash composites onto the photo. Defaults to `"source-over"` (a
+   * flat tint, i.e. the original blue/red/purple filters) — `"multiply"` and
+   * `"soft-light"` grade the tone instead of flattening the image under a
+   * solid color, which is what a warm color-grade filter needs.
+   */
+  blend?: "source-over" | "multiply" | "soft-light";
+}
+
+/**
+ * A screen-blended, blurred-and-brightened copy of the photo composited back
+ * on top of itself — the "bright areas bloom outward" glow look that a flat
+ * filter can't produce. See `prepFrame` in lib/strip-renderer.ts for the
+ * actual draw/blur/composite steps.
+ */
+export interface GlowEffect {
+  /** Blur radius (px, at the photo's native render size) for the bloom layer. */
+  blurPx: number;
+  /** Brightness multiplier applied to the blurred copy before it's screened back on. */
+  brightness: number;
+  /** 0-1 opacity of the screen-blended bloom layer. */
   opacity: number;
 }
 
@@ -25,6 +47,8 @@ export interface FilterDef {
   css: string;
   /** Present only for "color overlay" style filters — a tint wash on top of the CSS filter. */
   overlay?: ColorOverlay;
+  /** Present only for filters that add a soft glow/bloom on highlights (see `GlowEffect`). */
+  glow?: GlowEffect;
 }
 
 /** Builds a color-overlay filter: the photo renders as-is (or with `css`), then this color washes over it at `opacity`. */
@@ -69,6 +93,20 @@ export const FILTERS: FilterDef[] = [
   colorOverlayFilter("blue", "Blue", "#2d77ed", 0.3),
   colorOverlayFilter("red", "Red", "#cc0606", 0.3),
   colorOverlayFilter("purple", "Purple", "#6311a6", 0.3),
+  {
+    id: "cybercore",
+    label: "Cybercore",
+    // Effect 1, second half: a slight contrast/saturation pullback so the
+    // warm grade below reads as hazy/nostalgic instead of just "warm".
+    css: "contrast(0.93) saturate(0.9) brightness(1.03)",
+    // Effect 1, first half: a warm yellow-orange grade via a soft-light wash
+    // — this shifts tone instead of flattening the photo under a flat color
+    // the way a `source-over` overlay (blue/red/purple, above) would.
+    overlay: { color: "#ffb454", opacity: 0.4, blend: "soft-light" },
+    // Effect 2: the blurred+brightened copy screened back on top is what
+    // actually produces the "highlights glow" look — see prepFrame().
+    glow: { blurPx: 18, brightness: 1.4, opacity: 0.45 },
+  },
 ];
 
 const FILTER_MAP: Record<FilterId, FilterDef> = FILTERS.reduce(

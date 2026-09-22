@@ -15,6 +15,7 @@ import { usePhotoSession } from "@/hooks/use-photo-session";
 import { useSession } from "@/hooks/use-session-store";
 import { useLanguage } from "@/hooks/use-language";
 import { ColorOverlayLayer } from "@/components/camera/color-overlay-layer";
+import { GlowLayer } from "@/components/camera/glow-layer";
 import { getFilter } from "@/lib/filters";
 import { getLayout } from "@/lib/layouts";
 
@@ -80,6 +81,7 @@ export function CameraScreen() {
                 style={{ filter: css === "none" ? undefined : css }}
               />
               <ColorOverlayLayer overlay={filter.overlay} />
+              <GlowLayer src={session.lastFrame} glow={filter.glow} />
             </div>
           )}
         </CameraStage>

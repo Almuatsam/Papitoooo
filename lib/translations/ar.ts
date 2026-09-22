@@ -82,6 +82,7 @@ export const ar: Translations = {
     blue: "أزرق",
     red: "أحمر",
     purple: "بنفسجي",
+    cybercore: "سايبركور",
   },
   themes: {
     "streaming-card": { label: "بطاقة البث", tagline: "بطاقة نظيفة وموجة صوتية" },
