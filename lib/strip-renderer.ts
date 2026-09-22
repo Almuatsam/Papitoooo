@@ -1,4 +1,4 @@
-import { getFilter, type ColorOverlay } from "@/lib/filters";
+import { getFilter, type ColorOverlay, type GlowEffect } from "@/lib/filters";
 import { applyCssFilterToCanvas, canvasFilterSupported } from "@/lib/canvas-filter";
 import { getTheme, type PieceEdge, type StripPiecePlacement, type ThemeColors } from "@/lib/themes";
 import { getLayout, type Box } from "@/lib/layouts";
@@ -69,7 +69,28 @@ function placeholderFrame(w: number, h: number, radius: number, color: string): 
   return canvas;
 }
 
-/** Cover-crops, rounds corners, and bakes the selected filter into one frame. */
+/**
+ * Renders a blurred, brightened copy of `base` and returns it as its own
+ * canvas — the "bloom" layer for a `GlowEffect`. Blur uses the same
+ * `ctx.filter` + Safari pixel-fallback split as the photo's own CSS filter
+ * (see `canvasFilterSupported`), since Safari silently no-ops `ctx.filter`.
+ */
+function makeGlowLayer(base: HTMLCanvasElement, w: number, h: number, glow: GlowEffect): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return canvas;
+
+  const css = `blur(${glow.blurPx}px) brightness(${glow.brightness})`;
+  const nativeFilter = canvasFilterSupported();
+  if (nativeFilter) ctx.filter = css;
+  ctx.drawImage(base, 0, 0, w, h);
+  if (!nativeFilter) applyCssFilterToCanvas(ctx, w, h, css);
+  return canvas;
+}
+
+/** Cover-crops, rounds corners, and bakes the selected filter (grade + optional glow) into one frame. */
 async function prepFrame(
   src: string,
   w: number,
@@ -77,6 +98,7 @@ async function prepFrame(
   radius: number,
   css: string,
   overlay?: ColorOverlay,
+  glow?: GlowEffect,
 ): Promise<HTMLCanvasElement> {
   let img: HTMLImageElement;
   try {
@@ -125,11 +147,27 @@ async function prepFrame(
     // Reset first: the wash itself should stay a flat, un-blurred color —
     // it must not inherit the photo's own CSS filter (e.g. blur/hue-rotate).
     ctx.filter = "none";
-    ctx.globalCompositeOperation = "source-over";
+    // "multiply"/"soft-light" grade the tone (what "cybercore" needs);
+    // "source-over" (the default) is the old flat blue/red/purple wash.
+    ctx.globalCompositeOperation = overlay.blend ?? "source-over";
     ctx.globalAlpha = overlay.opacity;
     ctx.fillStyle = overlay.color;
     ctx.fillRect(0, 0, w, h);
     ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  if (glow) {
+    // Bloom: a blurred, brightened copy of the graded photo screened back on
+    // top. "screen" is what makes bright areas bloom outward while leaving
+    // dark areas nearly untouched — a flat overlay alone can't do this.
+    const bloom = makeGlowLayer(canvas, w, h, glow);
+    ctx.filter = "none";
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = glow.opacity;
+    ctx.drawImage(bloom, 0, 0, w, h);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
   }
 
   return canvas;
@@ -205,6 +243,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
   const filterDef = getFilter(filterId);
   const css = filterDef.css;
   const overlay = filterDef.overlay;
+  const glow = filterDef.glow;
   const paper = bgColor || colors.paper;
   const keyline = borderColor || colors.ink;
 
@@ -418,7 +457,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     for (let i = 0; i < boxes.length; i++) {
       const box = boxes[i];
       const src = frames[i] ?? frames[frames.length - 1];
-      const prepped = await prepFrame(src, box.width, box.height, strip.radius, css, overlay);
+      const prepped = await prepFrame(src, box.width, box.height, strip.radius, css, overlay, glow);
       const angle = strip.photoRotationJitter ? ROTATION_JITTER[i % ROTATION_JITTER.length] : 0;
       const cx = box.left + box.width / 2;
       const cy = box.top + box.height / 2;

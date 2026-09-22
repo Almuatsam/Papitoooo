@@ -12,7 +12,14 @@ export function ColorOverlayLayer({ overlay }: ColorOverlayLayerProps) {
     <div
       aria-hidden
       className="pointer-events-none absolute inset-0"
-      style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}
+      style={{
+        backgroundColor: overlay.color,
+        opacity: overlay.opacity,
+        // CSS `mix-blend-mode` mirrors the canvas export's `globalCompositeOperation`
+        // (see prepFrame in lib/strip-renderer.ts) — "multiply"/"soft-light" grade the
+        // tone instead of flattening the preview under a flat color.
+        mixBlendMode: overlay.blend && overlay.blend !== "source-over" ? overlay.blend : undefined,
+      }}
     />
   );
 }

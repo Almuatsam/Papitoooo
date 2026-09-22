@@ -83,6 +83,7 @@ export const en = {
     blue: "Blue",
     red: "Red",
     purple: "Purple",
+    cybercore: "Cybercore",
   } satisfies Record<FilterId, string>,
   themes: {
     "streaming-card": { label: "Streaming Card", tagline: "Clean card, waveform bar" },
