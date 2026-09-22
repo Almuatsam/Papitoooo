@@ -1,5 +1,5 @@
 import { getFilter, type ColorOverlay, type GlowEffect, type GlowLayer } from "@/lib/filters";
-import { applyCssFilterToCanvas, canvasFilterSupported } from "@/lib/canvas-filter";
+import { applyCssFilterToCanvas, canvasFilterSupported, extractTintedHighlights } from "@/lib/canvas-filter";
 import { getTheme, type PieceEdge, type StripPiecePlacement, type ThemeColors } from "@/lib/themes";
 import { getLayout, type Box } from "@/lib/layouts";
 import { paintPattern } from "@/lib/decor/patterns";
@@ -70,15 +70,24 @@ function placeholderFrame(w: number, h: number, radius: number, color: string): 
 }
 
 /**
- * Renders a blurred, brightened copy of `base` at full (w, h) size — one
- * bloom pass for a `GlowEffect`. Blurs at a *downscaled* size and draws back
- * up rather than blurring at native resolution: cheap-bloom's standard
- * trick, and it needs to be cheap here specifically because a wide/soft
- * pass's blur radius, converted to actual px, would be large enough that the
- * Safari pixel-fallback path (a hand-rolled convolution — see
- * `canvasFilterSupported`) could take seconds on a full-resolution photo.
- * Downscaling first also reads as a softer, more diffuse glow than the same
- * radius blurred at full size, which is what a "halo" pass wants anyway.
+ * Renders one bloom pass (a `GlowLayer`) from `base` at full (w, h) size:
+ * extract only the pixels above `layer.threshold` (tinted toward
+ * `layer.tint` — see `extractTintedHighlights`), blur that, brighten it, and
+ * hand back a canvas that's black everywhere except a colored glow around
+ * what were already highlights. Screening *that* onto the photo (see
+ * `prepFrame`) can only light up highlights — screening with black leaves
+ * the base pixel untouched — which is what keeps shadows/midtones dark
+ * regardless of how wide the blur is. Blurring the whole photo instead of
+ * just its highlights is what makes a naive bloom read as a flat gray haze.
+ *
+ * The extraction + blur both happen at a *downscaled* size, then get drawn
+ * back up: cheap-bloom's standard trick, and it needs to be cheap here
+ * specifically because a wide/soft pass's blur radius, converted to actual
+ * px, would be large enough that the Safari pixel-fallback path (a
+ * hand-rolled convolution — see `canvasFilterSupported`) could take seconds
+ * on a full-resolution photo. Downscaling first also reads as a softer, more
+ * diffuse glow than the same radius blurred at full size, which is what a
+ * "halo" pass wants anyway.
  */
 function makeGlowLayer(base: HTMLCanvasElement, w: number, h: number, layer: GlowLayer): HTMLCanvasElement {
   const dw = Math.max(1, Math.round(w / layer.downscale));
@@ -90,21 +99,42 @@ function makeGlowLayer(base: HTMLCanvasElement, w: number, h: number, layer: Glo
   const sctx = small.getContext("2d");
   if (!sctx) return small;
 
+  sctx.drawImage(base, 0, 0, dw, dh);
+  extractTintedHighlights(sctx, dw, dh, layer.threshold, layer.tint);
+
   // blurFrac is a fraction of the *downscaled* width, so the actual blur
   // radius stays small in absolute px (cheap) while the later upscale back
   // to (w, h) magnifies it proportionally to the photo's real render size.
+  // brightness here pushes the isolated highlights past white ("slightly
+  // overexposed") — safe to do now because everything else in this layer is
+  // already black, so brightening can't lift shadows (0 × brightness = 0).
   const css = `blur(${layer.blurFrac * dw}px) brightness(${layer.brightness})`;
   const nativeFilter = canvasFilterSupported();
-  if (nativeFilter) sctx.filter = css;
-  sctx.drawImage(base, 0, 0, dw, dh);
-  if (!nativeFilter) applyCssFilterToCanvas(sctx, dw, dh, css);
+  let blurred: HTMLCanvasElement = small;
+  if (nativeFilter) {
+    // ctx.filter only applies to what's drawn *through* it, so this needs a
+    // fresh target canvas — drawing `small` onto itself isn't reliable.
+    blurred = document.createElement("canvas");
+    blurred.width = dw;
+    blurred.height = dh;
+    const bctx = blurred.getContext("2d");
+    if (bctx) {
+      bctx.filter = css;
+      bctx.drawImage(small, 0, 0);
+    } else {
+      blurred = small;
+    }
+  } else {
+    // Safari: mutate `small`'s pixels in place instead.
+    applyCssFilterToCanvas(sctx, dw, dh, css);
+  }
 
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) return canvas;
-  ctx.drawImage(small, 0, 0, w, h);
+  ctx.drawImage(blurred, 0, 0, w, h);
   return canvas;
 }
 

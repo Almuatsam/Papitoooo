@@ -173,6 +173,42 @@ function applyGaussianBlur(data: Uint8ClampedArray, width: number, height: numbe
 }
 
 /**
+ * Zeroes out everything at or below `threshold` luminance and rescales what
+ * survives by how far above threshold it was, tinted toward `tint`
+ * (0..1 per-channel multipliers, e.g. a yellow-green light reads as
+ * `[1, 0.95, 0.45]` — barely touches red/green, cuts blue). This is the
+ * "extract only the bright pixels" step a real bloom needs: blurring and
+ * screening this back onto the photo (see `makeGlowLayer` in
+ * lib/strip-renderer.ts) only lights up genuine highlights, because
+ * screening with black leaves the base pixel exactly as it was — shadows
+ * and midtones can't be touched at all, however wide the blur. Skipping
+ * this step (blurring the *whole* graded photo instead) is what makes a
+ * naive bloom read as a flat gray haze instead of a glow.
+ */
+export function extractTintedHighlights(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  threshold: number,
+  tint: readonly [number, number, number],
+): void {
+  const image = ctx.getImageData(0, 0, width, height);
+  const data = image.data;
+  const [tr, tg, tb] = tint;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i] / 255;
+    const g = data[i + 1] / 255;
+    const b = data[i + 2] / 255;
+    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const factor = luminance <= threshold ? 0 : (luminance - threshold) / (1 - threshold);
+    data[i] = clamp01(r * factor * tr) * 255;
+    data[i + 1] = clamp01(g * factor * tg) * 255;
+    data[i + 2] = clamp01(b * factor * tb) * 255;
+  }
+  ctx.putImageData(image, 0, 0);
+}
+
+/**
  * Applies a CSS `filter` string (grayscale, sepia, saturate, hue-rotate,
  * brightness, contrast, blur) to what's already drawn on `ctx`, in string
  * order. Functions outside that set are ignored. Transparent pixels stay

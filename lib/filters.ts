@@ -19,19 +19,41 @@ export interface ColorOverlay {
   opacity: number;
   /**
    * How the wash composites onto the photo. Defaults to `"source-over"` (a
-   * flat tint, i.e. the original blue/red/purple filters) — `"multiply"` and
-   * `"soft-light"` grade the tone instead of flattening the image under a
-   * solid color, which is what a warm color-grade filter needs.
+   * flat tint, i.e. the original blue/red/purple filters). `"multiply"` and
+   * `"soft-light"` grade the tone but still drift pure black/white toward
+   * the tint color, which reads as fog/haze over a whole photo. `"overlay"`
+   * leaves true black and true white exactly as they were (only midtones
+   * shift) — the one to reach for when the brief is "tint it without
+   * washing out contrast or fading the shadows."
    */
-  blend?: "source-over" | "multiply" | "soft-light";
+  blend?: "source-over" | "multiply" | "soft-light" | "overlay";
 }
 
 /**
- * One screen-blended, blurred-and-brightened copy of the photo composited
- * back on top of itself — the "bright areas bloom outward" glow look that a
- * flat filter can't produce. See `makeGlowLayer` in lib/strip-renderer.ts.
+ * One screen-blended, blurred-and-brightened copy of *only the photo's
+ * highlights* composited back on top of itself — the "bright areas bloom
+ * outward" glow look that a flat filter can't produce. See `makeGlowLayer`
+ * in lib/strip-renderer.ts.
  */
 export interface GlowLayer {
+  /**
+   * Luminance (0-1) below which a pixel contributes nothing to this bloom
+   * pass. This is what keeps shadows/midtones dark: only pixels already
+   * brighter than `threshold` feed the blur at all (see
+   * `extractTintedHighlights` in lib/canvas-filter.ts), so screening the
+   * result back on can't lift anything below it — screening with black is a
+   * no-op. Skip this and you're blurring the *whole* photo, which is what
+   * makes a naive bloom read as a flat gray haze instead of a glow.
+   */
+  threshold: number;
+  /**
+   * Per-channel (0-1) tint multiplied into whatever survives `threshold`,
+   * e.g. `[1, 0.95, 0.45]` for a yellow-green light — barely touches
+   * red/green, cuts blue. This is what makes the *glow itself* colored
+   * (a luminous cast on highlights) rather than just a brightened copy of
+   * the photo's own highlight colors.
+   */
+  tint: readonly [number, number, number];
   /**
    * Blur radius as a *fraction* of the photo's rendered width, not a fixed
    * px value — so a tiny grid-6 cell and a large single-portrait photo get
@@ -119,24 +141,33 @@ export const FILTERS: FilterDef[] = [
   {
     id: "cybercore",
     label: "Cybercore",
-    // Effect 1, second half: a slight contrast/saturation pullback so the
-    // warm grade below reads as hazy/nostalgic instead of just "warm".
-    css: "contrast(0.93) saturate(0.9) brightness(1.03)",
-    // Effect 1, first half: a yellow-*green* grade (old fluorescent light /
-    // faded VHS, not clean warm yellow) via a soft-light wash — this shifts
-    // tone instead of flattening the photo under a flat color the way a
-    // `source-over` overlay (blue/red/purple, above) would. Deliberately
-    // distinct from Vintage (a plain `sepia()` CSS grade, no overlay, no
-    // glow at all — see above): green-shifted hue here vs. Vintage's
-    // straight brown/sepia, so the two don't converge.
-    overlay: { color: "#b8c26a", opacity: 0.4, blend: "soft-light" },
-    // Effect 2: two screened bloom passes — a tighter, brighter "core" and a
-    // much wider, softer "halo" — is what actually reads as glowing instead
-    // of merely soft. See makeGlowLayer() in strip-renderer.ts.
+    // A slight contrast/saturation *punch-up*, not a pullback — the earlier
+    // version pulled both down and that, combined with blurring the whole
+    // photo for the glow (see below), was the "dusty/faded/washed out" bug.
+    // Contrast and detail come from the base photo; this filter's job is
+    // the color + glow layered on top of it, not softening the photo itself.
+    css: "contrast(1.05) saturate(1.06)",
+    // A yellow-green grade via "overlay" blend: unlike "soft-light" (the
+    // earlier version), true black/white in the photo pass through
+    // unchanged — only midtones pick up the tint — so this can't wash out
+    // shadows or fade contrast. Deliberately distinct from Vintage (a plain
+    // `sepia()` CSS grade, no overlay, no glow at all): green-shifted hue
+    // here vs. Vintage's straight brown/sepia.
+    overlay: { color: "#a9c23f", opacity: 0.4, blend: "overlay" },
+    // The actual "luminous glow" comes from here, not the overlay above:
+    // two bloom passes, each built from *only* the photo's own highlights
+    // (see `threshold`/`tint` on GlowLayer and `extractTintedHighlights` in
+    // canvas-filter.ts) — recolored yellow-green, blurred, brightened past
+    // white ("slightly overexposed"), then screened back on. Because each
+    // pass is near-black everywhere except real highlights, screening it
+    // back on cannot lift shadows/midtones at all — that's what keeps darks
+    // dark and the photo crisp underneath instead of hazy all over.
     glow: {
       layers: [
-        { blurFrac: 0.05, downscale: 3, brightness: 1.6, opacity: 0.45 },
-        { blurFrac: 0.12, downscale: 8, brightness: 1.35, opacity: 0.4 },
+        // Tight, bright core right at the highlight edges.
+        { threshold: 0.55, tint: [1, 0.97, 0.4], blurFrac: 0.035, downscale: 3, brightness: 1.7, opacity: 0.6 },
+        // Wider, softer halo — the actual "bloom outward" spread.
+        { threshold: 0.4, tint: [1, 1, 0.55], blurFrac: 0.1, downscale: 6, brightness: 1.4, opacity: 0.5 },
       ],
     },
   },
