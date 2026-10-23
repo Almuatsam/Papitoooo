@@ -54,15 +54,20 @@ export function layoutsForTheme(themeId: StripThemeId): LayoutDef[] {
 /**
  * Keeps theme and layout compatible when either changes. Returns `layoutId`
  * untouched when the theme offers it; otherwise the first of the theme's
- * layouts with the same photo count (so an in-progress result keeps its
- * frames), falling back to the closest count.
+ * layouts with the same photo count. Never picks a layout that needs more
+ * shots than were taken (the result screen sends the user home when frames
+ * run short), so with no exact match it takes the largest count below, and
+ * only if every layout needs more, the smallest.
  */
 export function reconcileLayout(themeId: StripThemeId, layoutId: LayoutId): LayoutId {
   const available = layoutsForTheme(themeId);
   if (available.some((l) => l.id === layoutId)) return layoutId;
   const wanted = getLayout(layoutId).photoCount;
-  const closest = available.reduce((best, l) =>
-    Math.abs(l.photoCount - wanted) < Math.abs(best.photoCount - wanted) ? l : best,
-  );
-  return closest.id;
+  const fitting = available.filter((l) => l.photoCount <= wanted);
+  const pool = fitting.length > 0 ? fitting : available;
+  const pick = pool.reduce((best, l) => {
+    const better = fitting.length > 0 ? l.photoCount > best.photoCount : l.photoCount < best.photoCount;
+    return better ? l : best;
+  });
+  return pick.id;
 }

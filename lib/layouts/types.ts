@@ -36,6 +36,8 @@ export interface LayoutTemplate {
   /** Public URL of the artwork; its natural size equals the layout's canvas size. */
   image: string;
   printSize: PrintSize;
+  /** For each box, the index of the captured frame it shows (double prints repeat the same shot in both copies). */
+  slotFrames: readonly number[];
   /** Empty = no date on this layout (the art has no clear band for one). */
   dateBoxes: TemplateDateBox[];
 }

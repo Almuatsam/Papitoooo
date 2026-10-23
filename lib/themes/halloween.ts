@@ -26,7 +26,7 @@ export const halloween: ThemeDef = {
     bottomPad: 0,
     gap: 0,
     photoBorder: 0,
-    radius: 3,
+    radius: 0,
     background: { kind: "solid" },
     photoRotationJitter: false,
     piecePool: [],
