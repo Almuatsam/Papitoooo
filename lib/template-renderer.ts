@@ -49,11 +49,43 @@ export async function renderTemplateStrip(input: TemplateRenderInput): Promise<s
       }),
     );
 
+    // A frame shown in several slots (double prints) is graded and cropped
+    // once, at the largest of its slots, and each slot shows the top-left
+    // crop of that one bitmap. The measured slots of a pair differ by a pixel
+    // or two, so preparing per slot would resample the copies differently.
+    const frameIndexOf = (slot: number): number => template.slotFrames[slot] ?? slot;
+    const bounds = new Map<number, { width: number; height: number }>();
+    boxes.forEach((box, i) => {
+      const key = frameIndexOf(i);
+      const seen = bounds.get(key);
+      bounds.set(key, {
+        width: Math.max(seen?.width ?? 0, box.width),
+        height: Math.max(seen?.height ?? 0, box.height),
+      });
+    });
+    const prepared = new Map<number, HTMLCanvasElement>();
+
     for (let i = 0; i < boxes.length; i++) {
       const box = boxes[i];
-      const src = frames[i] ?? frames[frames.length - 1];
-      const prepped = await prepFrame(src, box.width, box.height);
-      fCanvas.add(new FabricImage(prepped, { left: box.left, top: box.top, selectable: false, evented: false }));
+      const key = frameIndexOf(i);
+      let prepped = prepared.get(key);
+      if (!prepped) {
+        const size = bounds.get(key) ?? box;
+        prepped = await prepFrame(frames[key] ?? frames[frames.length - 1], size.width, size.height);
+        prepared.set(key, prepped);
+      }
+      fCanvas.add(
+        new FabricImage(prepped, {
+          left: box.left,
+          top: box.top,
+          width: box.width,
+          height: box.height,
+          cropX: 0,
+          cropY: 0,
+          selectable: false,
+          evented: false,
+        }),
+      );
     }
 
     if (showDate && template.dateBoxes.length > 0) {

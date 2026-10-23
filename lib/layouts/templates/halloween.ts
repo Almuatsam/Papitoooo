@@ -15,6 +15,8 @@ interface TemplateSpec {
   printSize: PrintSize;
   /** Grey-slot rectangles, measured from the artwork's flat #d9d9d9 fill (border excluded, so the lime keyline stays visible). */
   slots: readonly Slot[];
+  /** Per-slot index of the captured frame it shows. Omitted = one frame per slot. Used by double prints so both copies are the same shot. */
+  slotFrames?: readonly number[];
   dateBoxes?: TemplateDateBox[];
 }
 
@@ -35,6 +37,7 @@ const SPECS: readonly TemplateSpec[] = [
     file: "1200x1800-A.png",
     size: [1200, 1800],
     printSize: "4x6",
+    slotFrames: [0, 0, 1, 1, 2, 2],
     slots: [
       [63, 43, 473, 444], [664, 44, 472, 442],
       [63, 518, 473, 444], [664, 519, 472, 442],
@@ -48,6 +51,7 @@ const SPECS: readonly TemplateSpec[] = [
     file: "1200x1800-B.png",
     size: [1200, 1800],
     printSize: "4x6",
+    slotFrames: [0, 0, 1, 1, 2, 2],
     slots: [
       [64, 104, 472, 432], [664, 104, 472, 432],
       [64, 564, 472, 432], [664, 564, 472, 432],
@@ -63,6 +67,7 @@ const SPECS: readonly TemplateSpec[] = [
     file: "1200x1800-C.png",
     size: [1200, 1800],
     printSize: "4x6",
+    slotFrames: [0, 0, 1, 1, 2, 2, 3, 3],
     slots: [
       [65, 44, 470, 332], [664, 44, 472, 332],
       [65, 404, 470, 332], [664, 404, 472, 332],
@@ -77,6 +82,7 @@ const SPECS: readonly TemplateSpec[] = [
     file: "1200x1800-D.png",
     size: [1200, 1800],
     printSize: "4x6",
+    slotFrames: [0, 0, 1, 1, 2, 2, 3, 3],
     slots: [
       [65, 154, 470, 322], [664, 154, 472, 322],
       [65, 504, 470, 322], [664, 504, 472, 322],
@@ -167,6 +173,7 @@ const SPECS: readonly TemplateSpec[] = [
     file: "1800x1200-L.png",
     size: [1800, 1200],
     printSize: "6x4",
+    slotFrames: [0, 1, 0, 1],
     slots: [
       [53, 43, 824, 434], [923, 43, 824, 434],
       [53, 613, 824, 434], [923, 613, 824, 434],
@@ -208,12 +215,13 @@ export const HALLOWEEN_LAYOUTS: LayoutDef[] = SPECS.map((spec) => {
     id: spec.id,
     label: spec.label,
     tagline: spec.tagline,
-    photoCount: boxes.length,
+    photoCount: spec.slotFrames ? Math.max(...spec.slotFrames) + 1 : boxes.length,
     computeLayout: () => ({ canvasW, canvasH, boxes }),
     template: {
       themeId: "halloween",
       image: `${BASE}/${spec.file}`,
       printSize: spec.printSize,
+      slotFrames: spec.slotFrames ?? boxes.map((_, i) => i),
       dateBoxes: spec.dateBoxes ?? [],
     },
   };
