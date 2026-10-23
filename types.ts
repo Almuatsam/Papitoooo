@@ -21,7 +21,8 @@ export type StripThemeId =
   | "receipt"
   | "leopard-scrapbook"
   | "zebra-stripes"
-  | "glitter-star";
+  | "glitter-star"
+  | "halloween";
 
 /** How many photos a strip has and how they're arranged — independent of theme. */
 export type LayoutId =
@@ -33,7 +34,21 @@ export type LayoutId =
   | "triple-horizontal"
   | "asymmetric-3"
   | "asymmetric-4"
-  | "double-strip-4";
+  | "double-strip-4"
+  // Template layouts: fixed-slot artwork owned by one theme (lib/layouts/templates/).
+  | "halloween-a"
+  | "halloween-b"
+  | "halloween-c"
+  | "halloween-d"
+  | "halloween-e"
+  | "halloween-f"
+  | "halloween-g"
+  | "halloween-h"
+  | "halloween-j"
+  | "halloween-k"
+  | "halloween-l"
+  | "halloween-m"
+  | "halloween-2x6";
 
 /** A single captured frame, stored unfiltered as a JPEG data URL. */
 export type Frame = string;

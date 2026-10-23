@@ -92,6 +92,7 @@ export const en = {
     "leopard-scrapbook": { label: "Leopard Scrapbook", tagline: "Leopard scallops, sparkle stars & grid paper" },
     "zebra-stripes": { label: "Zebra Stripes", tagline: "Bold black & white stripes, hot pink caption" },
     "glitter-star": { label: "Glitter Star", tagline: "Hot pink sequins & a chrome star" },
+    halloween: { label: "Halloween", tagline: "Purple night & glowing jack-o'-lanterns" },
   } satisfies Record<StripThemeId, { label: string; tagline: string }>,
   themeCategories: {
     "print-ticket": "Print & Ticket",
@@ -108,6 +109,19 @@ export const en = {
     "asymmetric-3": { label: "Big + Two", tagline: "1 large + 2 small photos" },
     "asymmetric-4": { label: "Uneven Grid", tagline: "1 large + 3 small photos" },
     "double-strip-4": { label: "Double Print", tagline: "Two 4-photo strips, side by side" },
+    "halloween-a": { label: "Two 3-Strips", tagline: "Two 3-photo strips, 4x6" },
+    "halloween-b": { label: "Two 3-Strips + Date", tagline: "Two 3-photo strips, date on top, 4x6" },
+    "halloween-c": { label: "Two 4-Strips", tagline: "Two 4-photo strips, 4x6" },
+    "halloween-d": { label: "Two 4-Strips + Title", tagline: "Two 4-photo strips, title on top, 4x6" },
+    "halloween-e": { label: "Two Big Photos", tagline: "Two large photos, 4x6" },
+    "halloween-f": { label: "Big + Three", tagline: "1 large + 3 small photos, 6x4" },
+    "halloween-g": { label: "Four Grid", tagline: "Four-photo grid, 6x4" },
+    "halloween-h": { label: "Three + Text", tagline: "Three photos + title, 6x4" },
+    "halloween-j": { label: "Two + Text", tagline: "Two photos + title, 6x4" },
+    "halloween-k": { label: "Two + Date", tagline: "Two photos, title on top, date below, 6x4" },
+    "halloween-l": { label: "Two Wide Pairs", tagline: "Two horizontal 2-photo strips, 6x4" },
+    "halloween-m": { label: "Full Photo", tagline: "One full photo, 6x4" },
+    "halloween-2x6": { label: "Strip 2x6", tagline: "4-photo strip, 2x6" },
   } satisfies Record<LayoutId, { label: string; tagline: string }>,
 };
 

@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { LAYOUTS } from "@/lib/layouts";
+import { LAYOUTS, TEMPLATE_LAYOUTS, layoutsForTheme } from "@/lib/layouts";
 import { getTheme } from "@/lib/themes";
 import { useSession } from "@/hooks/use-session-store";
 import { useLanguage } from "@/hooks/use-language";
@@ -16,7 +16,7 @@ const DIAGRAM_H = 46;
 function LayoutDiagram({ layoutId }: { layoutId: (typeof LAYOUTS)[number]["id"] }) {
   const { settings } = useSession();
   const theme = getTheme(settings.themeId);
-  const layout = LAYOUTS.find((l) => l.id === layoutId) ?? LAYOUTS[1];
+  const layout = [...LAYOUTS, ...TEMPLATE_LAYOUTS].find((l) => l.id === layoutId) ?? LAYOUTS[1];
   const { canvasW, canvasH, boxes } = layout.computeLayout(theme);
   const fit = Math.min(DIAGRAM_W / canvasW, DIAGRAM_H / canvasH);
 
@@ -50,7 +50,8 @@ export function LayoutSwitcher() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [panelLeft, setPanelLeft] = useState<number | null>(null);
-  const active = LAYOUTS.find((l) => l.id === settings.layoutId) ?? LAYOUTS[1];
+  const available = layoutsForTheme(settings.themeId);
+  const active = available.find((l) => l.id === settings.layoutId) ?? available[0];
 
   useLayoutEffect(() => {
     if (!open) {
@@ -99,13 +100,13 @@ export function LayoutSwitcher() {
       {open && (
         <div
           ref={panelRef}
-          className="facet absolute top-[calc(100%+8px)] z-40 grid w-[min(92vw,340px)] grid-cols-3 gap-2 border-2 border-line bg-panel p-3 shadow-[0_0_24px_rgb(var(--accent)/0.35)]"
+          className="facet absolute top-[calc(100%+8px)] z-40 grid max-h-[70vh] w-[min(92vw,340px)] grid-cols-3 gap-2 overflow-y-auto border-2 border-line bg-panel p-3 shadow-[0_0_24px_rgb(var(--accent)/0.35)]"
           style={{
             left: panelLeft ?? 0,
             visibility: panelLeft === null ? "hidden" : "visible",
           }}
         >
-          {LAYOUTS.map((layout) => {
+          {available.map((layout) => {
             const isActive = layout.id === settings.layoutId;
             return (
               <button
