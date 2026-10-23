@@ -12,5 +12,5 @@ export const THEME_CATEGORIES: ThemeCategory[] = [
   { id: "print-ticket", themeIds: ["boarding-pass", "receipt"] },
   // Single-item category — an established pattern here, not a leftover.
   { id: "minimal", themeIds: ["streaming-card"] },
-  { id: "playful", themeIds: ["leopard-scrapbook", "zebra-stripes", "glitter-star"] },
+  { id: "playful", themeIds: ["leopard-scrapbook", "zebra-stripes", "glitter-star", "halloween"] },
 ];

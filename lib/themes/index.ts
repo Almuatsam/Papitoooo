@@ -6,6 +6,7 @@ import { receipt } from "@/lib/themes/receipt";
 import { leopardScrapbook } from "@/lib/themes/leopard-scrapbook";
 import { zebraStripes } from "@/lib/themes/zebra-stripes";
 import { glitterStar } from "@/lib/themes/glitter-star";
+import { halloween } from "@/lib/themes/halloween";
 
 export type {
   CaptionTreatment,
@@ -27,6 +28,7 @@ export const THEMES: ThemeDef[] = [
   leopardScrapbook,
   zebraStripes,
   glitterStar,
+  halloween,
 ];
 
 const THEME_MAP: Record<StripThemeId, ThemeDef> = THEMES.reduce(

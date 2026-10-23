@@ -12,6 +12,8 @@ import { renderHeaderBand } from "@/lib/decor/header-band";
 import { drawOuterFrame } from "@/lib/decor/outer-frame";
 import { applyDoublePrint, applyTilt } from "@/lib/decor/strip-postprocess";
 import { renderPiece, seedFrom, mulberry32 } from "@/lib/decor/strip-pieces";
+import { addStickers } from "@/lib/decor/add-stickers";
+import { renderTemplateStrip } from "@/lib/template-renderer";
 import { jitterPiece, selectDecorPieces } from "@/lib/decor/decoration-generator";
 import type { FilterId, Frame, Lang, LayoutId, StickerInstance, StripThemeId } from "@/types";
 
@@ -300,7 +302,24 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
   const paper = bgColor || colors.paper;
   const keyline = borderColor || colors.ink;
 
-  const { canvasW, canvasH, boxes } = getLayout(layoutId).computeLayout(theme);
+  // Template layouts (fixed artwork owned by one theme, e.g. Halloween) have
+  // their own compositor; every standard theme + layout takes the path below
+  // untouched. Native pixel size is already print resolution, so `scale` is
+  // deliberately not applied.
+  const layoutDef = getLayout(layoutId);
+  if (layoutDef.template?.themeId === themeId) {
+    return renderTemplateStrip({
+      layout: layoutDef,
+      theme,
+      frames,
+      stickers,
+      showDate,
+      lang,
+      prepFrame: (src, w, h) => prepFrame(src, w, h, strip.radius, css, overlay, glow),
+    });
+  }
+
+  const { canvasW, canvasH, boxes } = layoutDef.computeLayout(theme);
 
   const el = document.createElement("canvas");
   const fCanvas = new StaticCanvas(el, { width: canvasW, height: canvasH, enableRetinaScaling: false });
@@ -562,51 +581,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     }
 
     // ---- stickers (user-placed) ----------------------------------------
-    const sorted = [...stickers].sort((a, b) => a.z - b.z);
-    for (const sticker of sorted) {
-      if (sticker.kind === "emoji") {
-        fCanvas.add(
-          new FabricText(sticker.content, {
-            left: sticker.x,
-            top: sticker.y,
-            originX: "center",
-            originY: "center",
-            angle: sticker.angle,
-            scaleX: sticker.scale,
-            scaleY: sticker.scale,
-            fontSize: 64,
-            fontFamily:
-              "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif",
-            selectable: false,
-            evented: false,
-          }),
-        );
-      } else {
-        try {
-          const img = await loadHtmlImage(svgToDataUrl(sticker.content));
-          const width = img.naturalWidth || img.width || 64;
-          const height = img.naturalHeight || img.height || 64;
-          fCanvas.add(
-            new FabricImage(img, {
-              left: sticker.x,
-              top: sticker.y,
-              width,
-              height,
-              originX: "center",
-              originY: "center",
-              angle: sticker.angle,
-              scaleX: sticker.scale,
-              scaleY: sticker.scale,
-              objectCaching: false,
-              selectable: false,
-              evented: false,
-            }),
-          );
-        } catch {
-          // skip stickers that fail to rasterise rather than aborting the export
-        }
-      }
-    }
+    await addStickers(fCanvas, stickers, { FabricImage, FabricText });
 
     // ---- caption -----------------------------------------------------
     try {

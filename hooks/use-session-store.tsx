@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { LAYOUTS, TEMPLATE_LAYOUTS, reconcileLayout } from "@/lib/layouts";
 import type { Frame, LayoutId, SessionSettings, StripThemeId, View } from "@/types";
 
 const THEME_STORAGE_KEY = "photobooth.themeId";
@@ -24,19 +25,16 @@ const VALID_THEMES: StripThemeId[] = [
   "leopard-scrapbook",
   "zebra-stripes",
   "glitter-star",
+  "halloween",
 ];
 
-const VALID_LAYOUTS: LayoutId[] = [
-  "strip-3",
-  "strip-4",
-  "grid-6",
-  "single-portrait",
-  "single-landscape",
-  "triple-horizontal",
-  "asymmetric-3",
-  "asymmetric-4",
-  "double-strip-4",
-];
+const VALID_LAYOUTS: LayoutId[] = [...LAYOUTS, ...TEMPLATE_LAYOUTS].map((l) => l.id);
+
+/** Re-pairs the layout with the theme whenever the theme changes, so a template theme never shows a standard layout (or the reverse). */
+function withCompatibleLayout(settings: SessionSettings): SessionSettings {
+  const layoutId = reconcileLayout(settings.themeId, settings.layoutId);
+  return layoutId === settings.layoutId ? settings : { ...settings, layoutId };
+}
 
 function defaultSettings(): SessionSettings {
   return {
@@ -91,11 +89,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     try {
       const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY) as StripThemeId | null;
       const storedLayout = window.localStorage.getItem(LAYOUT_STORAGE_KEY) as LayoutId | null;
-      setSettings((prev) => ({
-        ...prev,
-        themeId: storedTheme && VALID_THEMES.includes(storedTheme) ? storedTheme : prev.themeId,
-        layoutId: storedLayout && VALID_LAYOUTS.includes(storedLayout) ? storedLayout : prev.layoutId,
-      }));
+      setSettings((prev) =>
+        withCompatibleLayout({
+          ...prev,
+          themeId: storedTheme && VALID_THEMES.includes(storedTheme) ? storedTheme : prev.themeId,
+          layoutId: storedLayout && VALID_LAYOUTS.includes(storedLayout) ? storedLayout : prev.layoutId,
+        }),
+      );
     } catch {
       // localStorage unavailable — fall back to the defaults.
     }
@@ -121,11 +121,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateSettings = useCallback((patch: Partial<SessionSettings>) => {
-    setSettings((prev) => ({ ...prev, ...patch }));
+    setSettings((prev) => {
+      const next = { ...prev, ...patch };
+      return patch.themeId ? withCompatibleLayout(next) : next;
+    });
   }, []);
 
   const setTheme = useCallback((themeId: StripThemeId) => {
-    setSettings((prev) => ({ ...prev, themeId }));
+    setSettings((prev) => withCompatibleLayout({ ...prev, themeId }));
   }, []);
 
   const setLayout = useCallback((layoutId: LayoutId) => {
