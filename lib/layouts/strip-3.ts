@@ -8,14 +8,14 @@ export const strip3: LayoutDef = {
   tagline: "3-photo vertical strip",
   photoCount: 3,
   computeLayout(theme) {
-    const { outerPad, gap, bottomPad } = theme.strip;
+    const { outerPad, topPad = outerPad, gap, bottomPad } = theme.strip;
     const photoW = PHOTO_WIDTH;
     const photoH = PHOTO_HEIGHT;
     const canvasW = photoW + outerPad * 2;
-    const canvasH = outerPad + 3 * photoH + 2 * gap + bottomPad;
+    const canvasH = topPad + 3 * photoH + 2 * gap + bottomPad;
     const boxes = Array.from({ length: 3 }, (_, i) => ({
       left: outerPad,
-      top: outerPad + i * (photoH + gap),
+      top: topPad + i * (photoH + gap),
       width: photoW,
       height: photoH,
     }));

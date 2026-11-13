@@ -59,7 +59,10 @@ function Swatches({
 
 export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: CustomizerProps) {
   const { t } = useLanguage();
-  const hasStickers = getTheme(settings.themeId).features?.stickers !== false;
+  const features = getTheme(settings.themeId).features;
+  const hasStickers = features?.stickers !== false;
+  const hasDate = features?.date !== false;
+  const hasSwatches = features?.swatches !== false;
 
   return (
     <div className="space-y-6">
@@ -71,14 +74,16 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
         <ThemeBrowser themeId={settings.themeId} onSelect={(themeId) => onChange({ themeId })} />
       </Field>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Field label={t.result.border}>
-          <Swatches value={settings.borderColor} options={BORDER_SWATCHES} onSelect={(borderColor) => onChange({ borderColor })} />
-        </Field>
-        <Field label={t.result.background}>
-          <Swatches value={settings.bgColor} options={BG_SWATCHES} onSelect={(bgColor) => onChange({ bgColor })} />
-        </Field>
-      </div>
+      {hasSwatches && (
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t.result.border}>
+            <Swatches value={settings.borderColor} options={BORDER_SWATCHES} onSelect={(borderColor) => onChange({ borderColor })} />
+          </Field>
+          <Field label={t.result.background}>
+            <Swatches value={settings.bgColor} options={BG_SWATCHES} onSelect={(bgColor) => onChange({ bgColor })} />
+          </Field>
+        </div>
+      )}
 
       {settings.themeId === "boarding-pass" ? (
         <Field label={t.result.headerColor}>
@@ -145,19 +150,21 @@ export function Customizer({ settings, onChange, onAddStickerSvg, onAddEmoji }: 
         </Field>
       )}
 
-      <Field label={t.result.date}>
-        <button
-          type="button"
-          aria-pressed={settings.showDate}
-          onClick={() => onChange({ showDate: !settings.showDate })}
-          className={cn(
-            "facet-sm border-2 border-line px-4 py-1.5 text-sm font-bold uppercase tracking-wide",
-            settings.showDate ? "bg-accent text-white" : "bg-panel hover:bg-white/5",
-          )}
-        >
-          {settings.showDate ? t.result.shown : t.result.hidden}
-        </button>
-      </Field>
+      {hasDate && (
+        <Field label={t.result.date}>
+          <button
+            type="button"
+            aria-pressed={settings.showDate}
+            onClick={() => onChange({ showDate: !settings.showDate })}
+            className={cn(
+              "facet-sm border-2 border-line px-4 py-1.5 text-sm font-bold uppercase tracking-wide",
+              settings.showDate ? "bg-accent text-white" : "bg-panel hover:bg-white/5",
+            )}
+          >
+            {settings.showDate ? t.result.shown : t.result.hidden}
+          </button>
+        </Field>
+      )}
 
       {hasStickers && (
         <Field label={t.result.stickers}>

@@ -135,7 +135,8 @@ export type CaptionTreatment =
   | "bubble"
   | "airmail-tag"
   | "now-playing"
-  | "boarding-pass";
+  | "boarding-pass"
+  | "name-band";
 
 export interface StripBackground {
   kind: "solid" | "pattern" | "texture" | "pattern+texture";
@@ -170,10 +171,16 @@ export interface ThemeDef {
   features?: {
     /** false = the editor hides the "Stickers" panel entirely for this theme (its sticker pack/system is untouched). Default true. */
     stickers?: boolean;
+    /** false = the editor hides the "Date" toggle and the renderer never draws a date, for a theme whose artwork has no room for one. Default true. */
+    date?: boolean;
+    /** false = the editor hides the Border / Background colour swatches, for a theme whose artwork covers both. Default true. */
+    swatches?: boolean;
   };
   colors: ThemeColors;
   strip: {
     outerPad: number;
+    /** Top margin when it differs from the sides (a logo area above the photos). Unset = `outerPad`, so every other theme is unchanged. */
+    topPad?: number;
     bottomPad: number;
     gap: number;
     photoBorder: number;
@@ -219,5 +226,21 @@ export interface ThemeDef {
      * between a given session's own preview and download.
      */
     tiltDeg?: number;
+    /**
+     * A ready-made frame PNG drawn ON TOP of the photos at native size
+     * (its photo windows are transparent). One file per layout:
+     * `${dir}/${layoutId}.png`, its pixel size equal to the layout's canvas.
+     * Photos are cover-cropped into the layout boxes and the frame hides the
+     * edges, so the theme draws no background, pieces, stickers or outer
+     * frame of its own. Rendered at native size, so the export multiplier is
+     * not applied (see lib/strip-renderer.ts).
+     */
+    overlayFrame?: { dir: string };
+    /**
+     * Where the caption sits inside the bottom band, as an offset from the
+     * band's top edge, centred across the strip's inner width. Unset = the
+     * caption bitmap fills the whole band.
+     */
+    captionBand?: { top: number; height: number };
   };
 }

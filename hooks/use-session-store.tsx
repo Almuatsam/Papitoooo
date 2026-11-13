@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from "react";
 import { LAYOUTS, TEMPLATE_LAYOUTS, reconcileLayout } from "@/lib/layouts";
+import { getTheme } from "@/lib/themes";
+import { preloadOverlayFrame } from "@/lib/decor/assets/overlay-frame";
 import type { Frame, LayoutId, SessionSettings, StripThemeId, View } from "@/types";
 
 const THEME_STORAGE_KEY = "photobooth.themeId";
@@ -25,7 +27,7 @@ const VALID_THEMES: StripThemeId[] = [
   "leopard-scrapbook",
   "zebra-stripes",
   "glitter-star",
-  "halloween",
+  "graduation",
 ];
 
 const VALID_LAYOUTS: LayoutId[] = [...LAYOUTS, ...TEMPLATE_LAYOUTS].map((l) => l.id);
@@ -111,6 +113,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       // localStorage unavailable (private mode etc.) — just won't persist.
     }
   }, [settings.themeId, settings.layoutId, hydratedTheme]);
+
+  // Start fetching an overlay-frame theme's PNG as soon as theme + layout are
+  // known, so it is decoded by the time the first strip renders.
+  useEffect(() => {
+    preloadOverlayFrame(getTheme(settings.themeId).strip, settings.layoutId);
+  }, [settings.themeId, settings.layoutId]);
 
   const goHome = useCallback(() => setView("home"), []);
   const goCamera = useCallback(() => setView("camera"), []);

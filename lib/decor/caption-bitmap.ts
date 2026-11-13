@@ -3,6 +3,25 @@ import { readCssVar } from "@/lib/decor/theme-vars";
 import type { ThemeColors } from "@/lib/themes";
 import type { Lang } from "@/types";
 
+/**
+ * next/font only fetches a face once something in the DOM uses it, so force
+ * it before the first canvas draw (same reason as lib/decor/template-date.ts).
+ * Only the "name-band" treatment needs it: other treatments' fonts are
+ * already in use by the page.
+ */
+export async function ensureCaptionFont(fontVar: string, text: string): Promise<void> {
+  try {
+    await document.fonts.load(`400 40px ${nameBandFamily(fontVar)}`, text);
+  } catch {
+    // font unavailable: the canvas falls back to the next family in the list
+  }
+}
+
+/** The theme's font first, then Cairo, so names typed in Arabic still find glyphs the pixel face lacks. */
+function nameBandFamily(fontVar: string): string {
+  return [readCssVar(fontVar), readCssVar("--font-cairo")].filter(Boolean).join(", ") || "sans-serif";
+}
+
 /** Renders the caption + optional date as a single bitmap so Arabic/RTL text shapes correctly. One branch per theme's captionTreatment. */
 export function renderCaptionBitmap(
   width: number,
@@ -133,6 +152,18 @@ export function renderCaptionBitmap(
     ctx.lineTo(width / 2, height * 0.78);
     ctx.stroke();
     ctx.setLineDash([]);
+  } else if (treatment === "name-band") {
+    // One line of names, centred in its band, shrunk to fit the width so a
+    // long name never runs under the frame artwork.
+    const padX = width * 0.04;
+    ctx.fillStyle = colors.ink;
+    ctx.textBaseline = "middle";
+    const nameFamily = nameBandFamily(fontVar);
+    ctx.font = `400 ${fontSize}px ${nameFamily}`;
+    const measured = ctx.measureText(text).width;
+    const fitted = measured > width - padX * 2 ? (fontSize * (width - padX * 2)) / measured : fontSize;
+    ctx.font = `400 ${fitted}px ${nameFamily}`;
+    ctx.fillText(text, cx, cy + fitted * 0.04);
   } else if (treatment === "airmail-tag") {
     ctx.font = `400 ${fontSize}px ${family}`;
     ctx.fillStyle = colors.ink;

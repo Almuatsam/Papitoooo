@@ -22,6 +22,8 @@ export type StripThemeId =
   | "leopard-scrapbook"
   | "zebra-stripes"
   | "glitter-star"
+  | "graduation"
+  // Archived (lib/archive/halloween/): not offered anywhere, kept so the archived code still type-checks.
   | "halloween";
 
 /** How many photos a strip has and how they're arranged — independent of theme. */
@@ -35,7 +37,7 @@ export type LayoutId =
   | "asymmetric-3"
   | "asymmetric-4"
   | "double-strip-4"
-  // Template layouts: fixed-slot artwork owned by one theme (lib/layouts/templates/).
+  // Template layouts: fixed-slot artwork owned by one theme. Only the archived Halloween set exists (lib/archive/halloween/).
   | "halloween-a"
   | "halloween-b"
   | "halloween-c"

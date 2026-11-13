@@ -9,6 +9,7 @@
  * calling this pass done.
  *
  * Usage: /dev-preview?theme=receipt&layout=strip-4&caption=friday%20night
+ *        add &finalize=1&scale=3 to render like the download (double print, export scale).
  */
 
 import { useEffect, useState } from "react";
@@ -50,6 +51,8 @@ export default function DevPreviewPage() {
     const seed = Number(sp.get("seed") ?? "0.42");
     const lang = (sp.get("lang") ?? "en") as Lang;
     const filterId = (sp.get("filter") ?? "natural") as FilterId;
+    const finalize = sp.get("finalize") === "1";
+    const scale = Number(sp.get("scale") ?? "1");
     setLabel(`${themeId} / ${layoutId}`);
 
     const count = getLayout(layoutId).photoCount;
@@ -68,7 +71,8 @@ export default function DevPreviewPage() {
       showDate: true,
       stickers: [],
       lang,
-      scale: 1,
+      scale,
+      finalize,
       decorSeed: seed,
     })
       .then(setUrl)
