@@ -8,19 +8,19 @@ export const asymmetric4: LayoutDef = {
   tagline: "1 large + 3 small photos",
   photoCount: 4,
   computeLayout(theme) {
-    const { outerPad, gap, bottomPad } = theme.strip;
+    const { outerPad, topPad = outerPad, gap, bottomPad } = theme.strip;
     const bigW = PHOTO_WIDTH * 0.55;
     const rightW = PHOTO_WIDTH * 0.4;
     const smallH = PHOTO_HEIGHT * 0.55;
     const bigH = smallH * 3 + gap * 2;
     const canvasW = outerPad * 2 + bigW + gap + rightW;
-    const canvasH = outerPad + bigH + bottomPad;
+    const canvasH = topPad + bigH + bottomPad;
     const rightLeft = outerPad + bigW + gap;
     const boxes = [
-      { left: outerPad, top: outerPad, width: bigW, height: bigH },
-      { left: rightLeft, top: outerPad, width: rightW, height: smallH },
-      { left: rightLeft, top: outerPad + smallH + gap, width: rightW, height: smallH },
-      { left: rightLeft, top: outerPad + (smallH + gap) * 2, width: rightW, height: smallH },
+      { left: outerPad, top: topPad, width: bigW, height: bigH },
+      { left: rightLeft, top: topPad, width: rightW, height: smallH },
+      { left: rightLeft, top: topPad + smallH + gap, width: rightW, height: smallH },
+      { left: rightLeft, top: topPad + (smallH + gap) * 2, width: rightW, height: smallH },
     ];
     return { canvasW, canvasH, boxes };
   },

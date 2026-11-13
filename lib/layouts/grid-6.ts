@@ -8,17 +8,17 @@ export const grid6: LayoutDef = {
   tagline: "6-photo grid, 2x3",
   photoCount: 6,
   computeLayout(theme) {
-    const { outerPad, gap, bottomPad } = theme.strip;
+    const { outerPad, topPad = outerPad, gap, bottomPad } = theme.strip;
     const cellW = (PHOTO_WIDTH - gap) / 2;
     const cellH = cellW * (PHOTO_HEIGHT / PHOTO_WIDTH);
     const canvasW = outerPad * 2 + cellW * 2 + gap;
-    const canvasH = outerPad + cellH * 3 + gap * 2 + bottomPad;
+    const canvasH = topPad + cellH * 3 + gap * 2 + bottomPad;
     const boxes = [];
     for (let row = 0; row < 3; row++) {
       for (let col = 0; col < 2; col++) {
         boxes.push({
           left: outerPad + col * (cellW + gap),
-          top: outerPad + row * (cellH + gap),
+          top: topPad + row * (cellH + gap),
           width: cellW,
           height: cellH,
         });

@@ -8,11 +8,11 @@ export const singlePortrait: LayoutDef = {
   tagline: "1 tall photo",
   photoCount: 1,
   computeLayout(theme) {
-    const { outerPad, bottomPad } = theme.strip;
+    const { outerPad, topPad = outerPad, bottomPad } = theme.strip;
     const cellW = PHOTO_WIDTH * 0.85;
     const cellH = cellW * 1.5;
     const canvasW = outerPad * 2 + cellW;
-    const canvasH = outerPad + cellH + bottomPad;
-    return { canvasW, canvasH, boxes: [{ left: outerPad, top: outerPad, width: cellW, height: cellH }] };
+    const canvasH = topPad + cellH + bottomPad;
+    return { canvasW, canvasH, boxes: [{ left: outerPad, top: topPad, width: cellW, height: cellH }] };
   },
 };

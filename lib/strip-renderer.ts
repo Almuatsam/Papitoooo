@@ -7,9 +7,10 @@ import { paintTexture } from "@/lib/decor/textures";
 import { svgToDataUrl } from "@/lib/decor/stickers";
 import { loadHtmlImage } from "@/lib/decor/load-image";
 import { roundRectPath } from "@/lib/decor/canvas-utils";
-import { renderCaptionBitmap } from "@/lib/decor/caption-bitmap";
+import { ensureCaptionFont, renderCaptionBitmap } from "@/lib/decor/caption-bitmap";
 import { renderHeaderBand } from "@/lib/decor/header-band";
 import { drawOuterFrame } from "@/lib/decor/outer-frame";
+import { loadOverlayFrame, overlayFrameUrl } from "@/lib/decor/assets/overlay-frame";
 import { applyDoublePrint, applyTilt } from "@/lib/decor/strip-postprocess";
 import { renderPiece, seedFrom, mulberry32 } from "@/lib/decor/strip-pieces";
 import { addStickers } from "@/lib/decor/add-stickers";
@@ -321,6 +322,12 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
 
   const { canvasW, canvasH, boxes } = layoutDef.computeLayout(theme);
 
+  // An overlay frame (Graduation) is a fixed-size PNG drawn at native size,
+  // already print resolution like a template, so the export multiplier is
+  // deliberately not applied and the exported file is exactly the frame size.
+  const overlayFrame = strip.overlayFrame;
+  const outScale = overlayFrame ? 1 : scale;
+
   const el = document.createElement("canvas");
   const fCanvas = new StaticCanvas(el, { width: canvasW, height: canvasH, enableRetinaScaling: false });
 
@@ -581,7 +588,30 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     }
 
     // ---- stickers (user-placed) ----------------------------------------
-    await addStickers(fCanvas, stickers, { FabricImage, FabricText });
+    // An overlay-frame theme hides the sticker tray and its frame covers the
+    // whole strip, so stickers left over from another theme are not drawn.
+    if (!overlayFrame) await addStickers(fCanvas, stickers, { FabricImage, FabricText });
+
+    // ---- overlay frame: over the photos, at native size ------------------
+    // Drawn before the caption on purpose: the frame's name band is opaque
+    // white, so the names must go on top of it. Awaited, so a render can
+    // never finish without its frame (a failed load is logged and the frame
+    // skipped, like the other image-based frames).
+    if (overlayFrame) {
+      try {
+        const frameImg = await loadOverlayFrame(overlayFrameUrl(overlayFrame, layoutId));
+        const frameW = frameImg.naturalWidth || frameImg.width;
+        const frameH = frameImg.naturalHeight || frameImg.height;
+        if (frameW !== canvasW || frameH !== canvasH) {
+          // eslint-disable-next-line no-console
+          console.error(`[strip-renderer] ${layoutId} frame is ${frameW}x${frameH} but the layout canvas is ${canvasW}x${canvasH}`);
+        }
+        fCanvas.add(new FabricImage(frameImg, { left: 0, top: 0, selectable: false, evented: false }));
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("[strip-renderer] overlay frame failed to load, skipping", err);
+      }
+    }
 
     // ---- caption -----------------------------------------------------
     try {
@@ -594,16 +624,22 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       // draw (with placeholder text) since a structural piece below each
       // (now-playing-panel / the barcode+tear line) expects this row present.
       const hasOwnFixedLayout = strip.captionTreatment === "now-playing" || strip.captionTreatment === "boarding-pass";
-      if (showDate && !hasOwnFixedLayout) {
+      if (showDate && theme.features?.date !== false && !hasOwnFixedLayout) {
         const locale = lang === "ar" ? "ar" : undefined;
         parts.push(new Date().toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }));
       }
       if (parts.length > 0 || hasOwnFixedLayout) {
         const label = parts.join("   ·   ");
-        const captionInsetLeft = strip.captionInsetLeft ?? 0;
+        // captionBand = a slot inside the bottom band (Graduation's name
+        // band between the GRADUATION letters and the year); otherwise the
+        // caption fills the whole band, optionally inset from the left.
+        const band = strip.captionBand;
+        const captionInsetLeft = band ? strip.outerPad : (strip.captionInsetLeft ?? 0);
+        const captionWidth = band ? canvasW - strip.outerPad * 2 : canvasW - captionInsetLeft;
+        if (strip.captionTreatment === "name-band") await ensureCaptionFont(strip.captionFontVar, label);
         const captionCanvas = renderCaptionBitmap(
-          canvasW - captionInsetLeft,
-          strip.bottomPad,
+          captionWidth,
+          band ? band.height : strip.bottomPad,
           label,
           colors,
           strip.captionFontVar,
@@ -615,7 +651,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
         fCanvas.add(
           new FabricImage(captionCanvas, {
             left: captionInsetLeft,
-            top: canvasH - strip.bottomPad,
+            top: canvasH - strip.bottomPad + (band?.top ?? 0),
             selectable: false,
             evented: false,
           }),
@@ -627,7 +663,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
     }
 
     fCanvas.renderAll();
-    let dataUrl = fCanvas.toDataURL({ format: "png", multiplier: scale, enableRetinaScaling: false });
+    let dataUrl = fCanvas.toDataURL({ format: "png", multiplier: outScale, enableRetinaScaling: false });
 
     // ---- postprocessing: theme tilt, then layout double-print -----------
     // Both operate on the fully-composited raster (photos + pieces +
@@ -639,7 +675,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       dataUrl = await applyTilt(dataUrl, strip.tiltDeg + jitter);
     }
     if (finalize && layoutId === "double-strip-4") {
-      dataUrl = await applyDoublePrint(dataUrl, DOUBLE_PRINT_GAP * scale);
+      dataUrl = await applyDoublePrint(dataUrl, DOUBLE_PRINT_GAP * outScale);
     }
 
     return dataUrl;

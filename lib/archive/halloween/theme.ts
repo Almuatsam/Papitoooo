@@ -3,7 +3,7 @@ import type { ThemeDef } from "@/lib/themes/types";
 /**
  * Halloween is a template theme: its look is the fixed artwork in
  * public/themes/halloween/, selected through the template layouts in
- * lib/layouts/templates/halloween.ts. The strip fields below are only the
+ * lib/archive/halloween/layouts.ts. The strip fields below are only the
  * inert minimum the ThemeDef shape requires; the template renderer
  * (lib/template-renderer.ts) never reads spacing, pieces or caption settings.
  */

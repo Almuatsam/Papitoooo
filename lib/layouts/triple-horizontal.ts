@@ -8,14 +8,14 @@ export const tripleHorizontal: LayoutDef = {
   tagline: "3 stacked wide photos",
   photoCount: 3,
   computeLayout(theme) {
-    const { outerPad, gap, bottomPad } = theme.strip;
+    const { outerPad, topPad = outerPad, gap, bottomPad } = theme.strip;
     const cellW = PHOTO_WIDTH * 1.15;
     const cellH = cellW * 0.45;
     const canvasW = outerPad * 2 + cellW;
-    const canvasH = outerPad + 3 * cellH + 2 * gap + bottomPad;
+    const canvasH = topPad + 3 * cellH + 2 * gap + bottomPad;
     const boxes = Array.from({ length: 3 }, (_, i) => ({
       left: outerPad,
-      top: outerPad + i * (cellH + gap),
+      top: topPad + i * (cellH + gap),
       width: cellW,
       height: cellH,
     }));

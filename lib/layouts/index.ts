@@ -9,9 +9,33 @@ import { tripleHorizontal } from "@/lib/layouts/triple-horizontal";
 import { asymmetric3 } from "@/lib/layouts/asymmetric-3";
 import { asymmetric4 } from "@/lib/layouts/asymmetric-4";
 import { doubleStrip4 } from "@/lib/layouts/double-strip-4";
-import { HALLOWEEN_LAYOUTS } from "@/lib/layouts/templates/halloween";
 
 export type { Box, LayoutDef, LayoutResult, LayoutTemplate, PrintSize, TemplateDateBox } from "@/lib/layouts/types";
+
+/**
+ * A theme with an overlay frame is a fixed-size PNG, so its canvas must be a
+ * whole number of pixels: half pixels round up, and each photo box grows
+ * outward to the pixel grid (the frame sits on top and hides the sliver).
+ * Every other theme gets the layout's own numbers untouched.
+ */
+function withFramePixelGrid(layout: LayoutDef): LayoutDef {
+  return {
+    ...layout,
+    computeLayout(theme) {
+      const result = layout.computeLayout(theme);
+      if (!theme.strip.overlayFrame) return result;
+      return {
+        canvasW: Math.ceil(result.canvasW),
+        canvasH: Math.ceil(result.canvasH),
+        boxes: result.boxes.map((b) => {
+          const left = Math.floor(b.left);
+          const top = Math.floor(b.top);
+          return { left, top, width: Math.ceil(b.left + b.width) - left, height: Math.ceil(b.top + b.height) - top };
+        }),
+      };
+    },
+  };
+}
 
 /** The nine theme-independent layouts, usable with every theme. */
 export const LAYOUTS: LayoutDef[] = [
@@ -24,10 +48,14 @@ export const LAYOUTS: LayoutDef[] = [
   asymmetric3,
   asymmetric4,
   doubleStrip4,
-];
+].map(withFramePixelGrid);
 
-/** Fixed-artwork layouts, each owned by one theme (see LayoutDef.template). */
-export const TEMPLATE_LAYOUTS: LayoutDef[] = [...HALLOWEEN_LAYOUTS];
+/**
+ * Fixed-artwork layouts, each owned by one theme (see LayoutDef.template).
+ * Empty while no theme owns any: the only one so far, Halloween, is archived
+ * in lib/archive/halloween/.
+ */
+export const TEMPLATE_LAYOUTS: LayoutDef[] = [];
 
 const LAYOUT_MAP: Record<LayoutId, LayoutDef> = [...LAYOUTS, ...TEMPLATE_LAYOUTS].reduce(
   (acc, l) => {

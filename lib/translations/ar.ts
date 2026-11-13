@@ -91,6 +91,7 @@ export const ar: Translations = {
     "leopard-scrapbook": { label: "دفتر النمر", tagline: "تعرجات نمرية، نجوم وردية وورق مربعات" },
     "zebra-stripes": { label: "خطوط الحمار الوحشي", tagline: "خطوط سوداء وبيضاء جريئة، تعليق وردي فاقع" },
     "glitter-star": { label: "نجمة لامعة", tagline: "ترتر وردي فاقع ونجمة كروم" },
+    graduation: { label: "تخرج", tagline: "قبعة بكسلية ونجوم وإطار جاهز" },
     halloween: { label: "هالوين", tagline: "ليل بنفسجي وقرع مضيء" },
   },
   themeCategories: {
