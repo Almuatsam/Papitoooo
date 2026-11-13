@@ -11,7 +11,8 @@ import { ensureCaptionFont, renderCaptionBitmap } from "@/lib/decor/caption-bitm
 import { renderHeaderBand } from "@/lib/decor/header-band";
 import { drawOuterFrame } from "@/lib/decor/outer-frame";
 import { loadOverlayFrame, overlayFrameUrl } from "@/lib/decor/assets/overlay-frame";
-import { applyDoublePrint, applyTilt } from "@/lib/decor/strip-postprocess";
+import { applyDoublePrint, applyDoublePrintSheet, applyTilt } from "@/lib/decor/strip-postprocess";
+import { stripForLayout } from "@/lib/themes/frame-geometry";
 import { renderPiece, seedFrom, mulberry32 } from "@/lib/decor/strip-pieces";
 import { addStickers } from "@/lib/decor/add-stickers";
 import { renderTemplateStrip } from "@/lib/template-renderer";
@@ -294,7 +295,9 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
   const { StaticCanvas, FabricImage, FabricText, Rect, Circle } = await import("fabric");
 
   const theme = getTheme(themeId);
-  const strip = theme.strip;
+  // An overlay-frame theme may draw some layouts to their own spacing (the
+  // 1:3 print strips); the layout boxes and the caption band both follow it.
+  const strip = stripForLayout(theme.strip, layoutId);
   const colors = theme.colors;
   const filterDef = getFilter(filterId);
   const css = filterDef.css;
@@ -675,7 +678,10 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
       dataUrl = await applyTilt(dataUrl, strip.tiltDeg + jitter);
     }
     if (finalize && layoutId === "double-strip-4") {
-      dataUrl = await applyDoublePrint(dataUrl, DOUBLE_PRINT_GAP * outScale);
+      const sheet = overlayFrame?.printSheet;
+      dataUrl = sheet
+        ? await applyDoublePrintSheet(dataUrl, sheet.width, sheet.height)
+        : await applyDoublePrint(dataUrl, DOUBLE_PRINT_GAP * outScale);
     }
 
     return dataUrl;

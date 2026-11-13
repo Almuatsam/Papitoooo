@@ -9,6 +9,7 @@ import { tripleHorizontal } from "@/lib/layouts/triple-horizontal";
 import { asymmetric3 } from "@/lib/layouts/asymmetric-3";
 import { asymmetric4 } from "@/lib/layouts/asymmetric-4";
 import { doubleStrip4 } from "@/lib/layouts/double-strip-4";
+import { themeForLayout } from "@/lib/themes/frame-geometry";
 
 export type { Box, LayoutDef, LayoutResult, LayoutTemplate, PrintSize, TemplateDateBox } from "@/lib/layouts/types";
 
@@ -16,12 +17,15 @@ export type { Box, LayoutDef, LayoutResult, LayoutTemplate, PrintSize, TemplateD
  * A theme with an overlay frame is a fixed-size PNG, so its canvas must be a
  * whole number of pixels: half pixels round up, and each photo box grows
  * outward to the pixel grid (the frame sits on top and hides the sliver).
- * Every other theme gets the layout's own numbers untouched.
+ * The frame's per-layout spacing (see `strip.overlayFrame.perLayout`) is
+ * applied first, so a frame drawn wider or taller than the theme default
+ * still lines up. Every other theme gets the layout's own numbers untouched.
  */
 function withFramePixelGrid(layout: LayoutDef): LayoutDef {
   return {
     ...layout,
-    computeLayout(theme) {
+    computeLayout(baseTheme) {
+      const theme = themeForLayout(baseTheme, layout.id);
       const result = layout.computeLayout(theme);
       if (!theme.strip.overlayFrame) return result;
       return {

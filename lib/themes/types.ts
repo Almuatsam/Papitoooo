@@ -1,6 +1,14 @@
 import type { PatternId } from "@/lib/decor/patterns";
 import type { TextureId } from "@/lib/decor/textures";
-import type { StripThemeId } from "@/types";
+import type { LayoutId, StripThemeId } from "@/types";
+
+/** Spacing a single layout's overlay frame was drawn to, when it differs from the theme's defaults (see `strip.overlayFrame.perLayout`). */
+export interface FrameGeometry {
+  outerPad?: number;
+  topPad?: number;
+  bottomPad?: number;
+  captionBand?: { top: number; height: number };
+}
 
 /**
  * The photo-strip decoration vocabulary: physical-craft shape families
@@ -234,8 +242,18 @@ export interface ThemeDef {
      * edges, so the theme draws no background, pieces, stickers or outer
      * frame of its own. Rendered at native size, so the export multiplier is
      * not applied (see lib/strip-renderer.ts).
+     *
+     * `perLayout` overrides the spacing for frames drawn to a different
+     * geometry (the print strips are widened or lengthened to an exact 1:3
+     * so a 2x6 print slot shows the whole strip). `printSheet` makes the
+     * double-print download a fixed-size sheet (e.g. 1200x1800 = 4x6 in at
+     * 300 dpi) with each copy fitted, never cropped, into its half.
      */
-    overlayFrame?: { dir: string };
+    overlayFrame?: {
+      dir: string;
+      perLayout?: Partial<Record<LayoutId, FrameGeometry>>;
+      printSheet?: { width: number; height: number };
+    };
     /**
      * Where the caption sits inside the bottom band, as an offset from the
      * band's top edge, centred across the strip's inner width. Unset = the

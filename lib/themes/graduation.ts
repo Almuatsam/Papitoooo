@@ -38,7 +38,23 @@ export const graduation: ThemeDef = {
     captionFontVar: "--font-press-start",
     captionFontSize: 44,
     outerFrame: { style: "none", width: 0 },
-    overlayFrame: { dir: "/themes/graduation" },
+    overlayFrame: {
+      dir: "/themes/graduation",
+      // The strips are printed two-up on 4x6 paper, so each is drawn to an
+      // exact 1:3 (a 2x6 in slot) with every element at least 100px (4%)
+      // from the top and bottom edges:
+      //  - strip-4 / double-strip-4: 847x2542, the extra width in the side
+      //    padding; the year moved up to end 100px above the bottom, so the
+      //    name band is shorter (it ends 7px above the year).
+      //  - strip-3: 724x2172, 62px added above and below.
+      perLayout: {
+        "strip-3": { topPad: 292, bottomPad: 442 },
+        "strip-4": { outerPad: 123.5, captionBand: { top: 84, height: 112 } },
+        "double-strip-4": { outerPad: 123.5, captionBand: { top: 84, height: 112 } },
+      },
+      // 4x6 in at 300 dpi: both strips fitted into 600x1800 halves, uncropped.
+      printSheet: { width: 1200, height: 1800 },
+    },
     // The empty band between the GRADUATION letters (end 70px into the
     // bottom area) and "2026" (starts 276px in), measured from the frames.
     captionBand: { top: 84, height: 178 },
