@@ -93,6 +93,7 @@ export const en = {
     "zebra-stripes": { label: "Zebra Stripes", tagline: "Bold black & white stripes, hot pink caption" },
     "glitter-star": { label: "Glitter Star", tagline: "Hot pink sequins & a chrome star" },
     graduation: { label: "Graduation", tagline: "Pixel-art cap, stars & a ready-made frame" },
+    "muscat-college": { label: "Muscat College", tagline: "Purple & gold graduation frame" },
     halloween: { label: "Halloween", tagline: "Purple night & glowing jack-o'-lanterns" },
   } satisfies Record<StripThemeId, { label: string; tagline: string }>,
   themeCategories: {

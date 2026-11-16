@@ -23,6 +23,7 @@ export type StripThemeId =
   | "zebra-stripes"
   | "glitter-star"
   | "graduation"
+  | "muscat-college"
   // Archived (lib/archive/halloween/): not offered anywhere, kept so the archived code still type-checks.
   | "halloween";
 

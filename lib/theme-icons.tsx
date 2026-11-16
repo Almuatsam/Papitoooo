@@ -12,4 +12,5 @@ export const THEME_ICONS: Record<StripThemeId, LucideIcon> = {
   // Archived (lib/archive/halloween/): no longer offered, but the type still lists it.
   halloween: Ghost,
   graduation: GraduationCap,
+  "muscat-college": GraduationCap,
 };

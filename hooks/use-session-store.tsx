@@ -28,6 +28,7 @@ const VALID_THEMES: StripThemeId[] = [
   "zebra-stripes",
   "glitter-star",
   "graduation",
+  "muscat-college",
 ];
 
 const VALID_LAYOUTS: LayoutId[] = [...LAYOUTS, ...TEMPLATE_LAYOUTS].map((l) => l.id);
