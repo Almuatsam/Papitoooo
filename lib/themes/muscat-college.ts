@@ -35,8 +35,10 @@ export const muscatCollege: ThemeDef = {
     piecePool: [],
     pieceCount: [0, 0],
     captionTreatment: "name-band",
-    captionFontVar: "--font-press-start",
-    captionFontSize: 36,
+    captionFontVar: "--font-cinzel",
+    captionFontSize: 46,
+    // Gold fading top to bottom, like the lettering on the frame.
+    captionStyle: { gradient: ["#FCE8A0", "#D6A842", "#96681E"], letterSpacing: 1.5 },
     outerFrame: { style: "none", width: 0 },
     overlayFrame: {
       dir: "/themes/muscat-college",
@@ -44,13 +46,16 @@ export const muscatCollege: ThemeDef = {
         // strip-3 is drawn with extra space above and below so the strip is
         // exactly 1:3 (848x2544), like the 4-photo strips.
         "strip-3": { topPad: 504, bottomPad: 622 },
+        // These two frames have a shorter name band (the year sits 26px higher).
+        "strip-4": { captionBand: { top: 145, height: 66 }, captionFontSize: 40 },
+        "double-strip-4": { captionBand: { top: 145, height: 66 }, captionFontSize: 40 },
       },
       // 4x6 in at 300 dpi: both strips fitted into 600x1800 halves, uncropped.
       printSheet: { width: 1200, height: 1800 },
     },
-    // The empty band between the script "Graduation" (ends 144px into the
-    // bottom area) and the year (starts 204px in), measured from the frames,
-    // with 1px of margin on each side.
-    captionBand: { top: 146, height: 57 },
+    // The empty band between the script "Graduation" (ends 138px into the
+    // bottom area) and the year (starts 244px in; 218px on the strip-4
+    // frames), measured from the frames, with about 6px clear on each side.
+    captionBand: { top: 145, height: 92 },
   },
 };

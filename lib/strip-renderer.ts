@@ -650,6 +650,7 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
           strip.captionTreatment,
           lang,
           subtitle,
+          strip.captionStyle,
         );
         fCanvas.add(
           new FabricImage(captionCanvas, {
