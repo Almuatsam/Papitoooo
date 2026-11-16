@@ -12,6 +12,7 @@ import {
   Cairo,
   Bebas_Neue,
   Montserrat,
+  Cinzel,
 } from "next/font/google";
 import "./globals.css";
 
@@ -75,6 +76,9 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
+// Serif that matches the Muscat College frame's "2026" (name-band caption).
+const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", display: "swap" });
+
 const fontVars = [
   archivo.variable,
   archivoBlack.variable,
@@ -88,6 +92,7 @@ const fontVars = [
   cairo.variable,
   bebasNeue.variable,
   montserrat.variable,
+  cinzel.variable,
 ].join(" ");
 
 export const metadata: Metadata = {

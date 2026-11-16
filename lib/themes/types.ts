@@ -8,6 +8,7 @@ export interface FrameGeometry {
   topPad?: number;
   bottomPad?: number;
   captionBand?: { top: number; height: number };
+  captionFontSize?: number;
 }
 
 /**
@@ -203,6 +204,8 @@ export interface ThemeDef {
     /** CSS custom property holding the canvas-ready font-family list. */
     captionFontVar: string;
     captionFontSize: number;
+    /** Optional look for the "name-band" caption: a top-to-bottom colour gradient (3 stops) instead of `colors.ink`, and letter-spacing in px. */
+    captionStyle?: { gradient?: [string, string, string]; letterSpacing?: number };
     /**
      * Shrinks the caption bitmap's width and shifts it right by this many
      * px, instead of spanning/centering across the full `canvasW` — for a

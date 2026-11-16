@@ -34,6 +34,8 @@ export function renderCaptionBitmap(
   lang: Lang,
   /** "now-playing" — the user-editable "artist" row under the title, falls back to "Photo Booth". "boarding-pass" — the "TO" city, falls back to "DESTINATION". Unused otherwise. */
   subtitleText?: string,
+  /** "name-band" only: optional gradient fill and letter-spacing (px). */
+  nameStyle?: { gradient?: [string, string, string]; letterSpacing?: number },
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -159,11 +161,26 @@ export function renderCaptionBitmap(
     ctx.fillStyle = colors.ink;
     ctx.textBaseline = "middle";
     const nameFamily = nameBandFamily(fontVar);
+    // Letter-spacing would pull Arabic letters apart, so it is Latin-only.
+    const spacing = lang === "ar" ? 0 : (nameStyle?.letterSpacing ?? 0);
+    ctx.letterSpacing = `${spacing}px`;
     ctx.font = `400 ${fontSize}px ${nameFamily}`;
     const measured = ctx.measureText(text).width;
-    const fitted = measured > width - padX * 2 ? (fontSize * (width - padX * 2)) / measured : fontSize;
+    const maxW = width - padX * 2;
+    const scale = measured > maxW ? maxW / measured : 1;
+    const fitted = fontSize * scale;
+    ctx.letterSpacing = `${spacing * scale}px`;
     ctx.font = `400 ${fitted}px ${nameFamily}`;
-    ctx.fillText(text, cx, cy + fitted * 0.04);
+    const y = cy + fitted * 0.04;
+    if (nameStyle?.gradient) {
+      const [top, mid, bottom] = nameStyle.gradient;
+      const grad = ctx.createLinearGradient(0, y - fitted * 0.4, 0, y + fitted * 0.4);
+      grad.addColorStop(0, top);
+      grad.addColorStop(0.5, mid);
+      grad.addColorStop(1, bottom);
+      ctx.fillStyle = grad;
+    }
+    ctx.fillText(text, cx, y);
   } else if (treatment === "airmail-tag") {
     ctx.font = `400 ${fontSize}px ${family}`;
     ctx.fillStyle = colors.ink;
