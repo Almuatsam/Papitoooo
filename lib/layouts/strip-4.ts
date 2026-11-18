@@ -1,5 +1,6 @@
 import { PHOTO_HEIGHT, PHOTO_WIDTH } from "@/lib/constants";
 import type { LayoutDef } from "@/lib/layouts/types";
+import { resolvePads } from "@/lib/layouts/pads";
 
 /** Today's default shape: one vertical column of 4 photos. Must reproduce the exact geometry that shipped before layout existed as a concept — the "no regression" case. */
 export const strip4: LayoutDef = {
@@ -8,13 +9,14 @@ export const strip4: LayoutDef = {
   tagline: "4-photo vertical strip",
   photoCount: 4,
   computeLayout(theme) {
-    const { outerPad, topPad = outerPad, gap, bottomPad } = theme.strip;
+    const { gap, bottomPad } = theme.strip;
+    const { leftPad, rightPad, topPad } = resolvePads(theme.strip);
     const photoW = PHOTO_WIDTH;
     const photoH = PHOTO_HEIGHT;
-    const canvasW = photoW + outerPad * 2;
+    const canvasW = photoW + leftPad + rightPad;
     const canvasH = topPad + 4 * photoH + 3 * gap + bottomPad;
     const boxes = Array.from({ length: 4 }, (_, i) => ({
-      left: outerPad,
+      left: leftPad,
       top: topPad + i * (photoH + gap),
       width: photoW,
       height: photoH,

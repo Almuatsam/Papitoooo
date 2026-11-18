@@ -16,6 +16,7 @@ import { stripForLayout } from "@/lib/themes/frame-geometry";
 import { renderPiece, seedFrom, mulberry32 } from "@/lib/decor/strip-pieces";
 import { addStickers } from "@/lib/decor/add-stickers";
 import { renderTemplateStrip } from "@/lib/template-renderer";
+import { resolvePads } from "@/lib/layouts/pads";
 import { jitterPiece, selectDecorPieces } from "@/lib/decor/decoration-generator";
 import type { FilterId, Frame, Lang, LayoutId, StickerInstance, StripThemeId } from "@/types";
 
@@ -637,8 +638,9 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
         // band between the GRADUATION letters and the year); otherwise the
         // caption fills the whole band, optionally inset from the left.
         const band = strip.captionBand;
-        const captionInsetLeft = band ? strip.outerPad : (strip.captionInsetLeft ?? 0);
-        const captionWidth = band ? canvasW - strip.outerPad * 2 : canvasW - captionInsetLeft;
+        const { leftPad, rightPad } = resolvePads(strip);
+        const captionInsetLeft = band ? leftPad : (strip.captionInsetLeft ?? 0);
+        const captionWidth = band ? canvasW - leftPad - rightPad : canvasW - captionInsetLeft;
         if (strip.captionTreatment === "name-band") await ensureCaptionFont(strip.captionFontVar, label);
         const captionCanvas = renderCaptionBitmap(
           captionWidth,

@@ -29,6 +29,7 @@ const VALID_THEMES: StripThemeId[] = [
   "glitter-star",
   "graduation",
   "muscat-college",
+  "squ",
 ];
 
 const VALID_LAYOUTS: LayoutId[] = [...LAYOUTS, ...TEMPLATE_LAYOUTS].map((l) => l.id);

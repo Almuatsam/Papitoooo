@@ -8,6 +8,7 @@ import { zebraStripes } from "@/lib/themes/zebra-stripes";
 import { glitterStar } from "@/lib/themes/glitter-star";
 import { graduation } from "@/lib/themes/graduation";
 import { muscatCollege } from "@/lib/themes/muscat-college";
+import { squ } from "@/lib/themes/squ";
 
 export type {
   CaptionTreatment,
@@ -31,6 +32,7 @@ export const THEMES: ThemeDef[] = [
   glitterStar,
   graduation,
   muscatCollege,
+  squ,
 ];
 
 const THEME_MAP: Record<StripThemeId, ThemeDef> = THEMES.reduce(

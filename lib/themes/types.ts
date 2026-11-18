@@ -190,6 +190,10 @@ export interface ThemeDef {
     outerPad: number;
     /** Top margin when it differs from the sides (a logo area above the photos). Unset = `outerPad`, so every other theme is unchanged. */
     topPad?: number;
+    /** Left margin for an asymmetric frame (a lace strip on one side). Unset = `outerPad`. */
+    leftPad?: number;
+    /** Right margin for an asymmetric frame. Unset = `outerPad`. */
+    rightPad?: number;
     bottomPad: number;
     gap: number;
     photoBorder: number;

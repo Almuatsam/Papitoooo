@@ -93,6 +93,7 @@ export const ar: Translations = {
     "glitter-star": { label: "نجمة لامعة", tagline: "ترتر وردي فاقع ونجمة كروم" },
     graduation: { label: "تخرج", tagline: "قبعة بكسلية ونجوم وإطار جاهز" },
     "muscat-college": { label: "كلية مسقط", tagline: "إطار تخرج بنفسجي وذهبي" },
+    squ: { label: "جامعة السلطان قابوس", tagline: "إطار تخرج كحلي وذهبي مع دانتيل" },
     halloween: { label: "هالوين", tagline: "ليل بنفسجي وقرع مضيء" },
   },
   themeCategories: {

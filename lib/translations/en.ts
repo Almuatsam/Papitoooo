@@ -94,6 +94,7 @@ export const en = {
     "glitter-star": { label: "Glitter Star", tagline: "Hot pink sequins & a chrome star" },
     graduation: { label: "Graduation", tagline: "Pixel-art cap, stars & a ready-made frame" },
     "muscat-college": { label: "Muscat College", tagline: "Purple & gold graduation frame" },
+    squ: { label: "SQU", tagline: "Navy & gold graduation frame with lace" },
     halloween: { label: "Halloween", tagline: "Purple night & glowing jack-o'-lanterns" },
   } satisfies Record<StripThemeId, { label: string; tagline: string }>,
   themeCategories: {

@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "node --test lib/layouts/layouts.test.cjs",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

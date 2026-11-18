@@ -13,4 +13,5 @@ export const THEME_ICONS: Record<StripThemeId, LucideIcon> = {
   halloween: Ghost,
   graduation: GraduationCap,
   "muscat-college": GraduationCap,
+  squ: GraduationCap,
 };

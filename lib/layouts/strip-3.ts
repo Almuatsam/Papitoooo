@@ -1,5 +1,6 @@
 import { PHOTO_HEIGHT, PHOTO_WIDTH } from "@/lib/constants";
 import type { LayoutDef } from "@/lib/layouts/types";
+import { resolvePads } from "@/lib/layouts/pads";
 
 /** One vertical column of 3 photos — the same column formula as strip-4, one shot fewer. */
 export const strip3: LayoutDef = {
@@ -8,13 +9,14 @@ export const strip3: LayoutDef = {
   tagline: "3-photo vertical strip",
   photoCount: 3,
   computeLayout(theme) {
-    const { outerPad, topPad = outerPad, gap, bottomPad } = theme.strip;
+    const { gap, bottomPad } = theme.strip;
+    const { leftPad, rightPad, topPad } = resolvePads(theme.strip);
     const photoW = PHOTO_WIDTH;
     const photoH = PHOTO_HEIGHT;
-    const canvasW = photoW + outerPad * 2;
+    const canvasW = photoW + leftPad + rightPad;
     const canvasH = topPad + 3 * photoH + 2 * gap + bottomPad;
     const boxes = Array.from({ length: 3 }, (_, i) => ({
-      left: outerPad,
+      left: leftPad,
       top: topPad + i * (photoH + gap),
       width: photoW,
       height: photoH,
