@@ -1,0 +1,82 @@
+[
+  {
+    "theme": "muscat-college",
+    "layout": "strip-4",
+    "caption": "First try",
+    "size": [
+      848,
+      2544
+    ],
+    "pixels": 932,
+    "bbox": [
+      331,
+      2324,
+      518,
+      2354
+    ]
+  },
+  {
+    "theme": "muscat-college",
+    "layout": "strip-3",
+    "caption": "First try",
+    "size": [
+      848,
+      2544
+    ],
+    "pixels": 1236,
+    "bbox": [
+      316,
+      2092,
+      535,
+      2126
+    ]
+  },
+  {
+    "theme": "graduation",
+    "layout": "strip-4",
+    "caption": "First try",
+    "size": [
+      847,
+      2542
+    ],
+    "pixels": 5200,
+    "bbox": [
+      225,
+      2282,
+      617,
+      2326
+    ]
+  },
+  {
+    "theme": "graduation",
+    "layout": "asymmetric-4",
+    "caption": "First try",
+    "size": [
+      738,
+      1441
+    ],
+    "pixels": 4906,
+    "bbox": [
+      171,
+      1214,
+      562,
+      1258
+    ]
+  },
+  {
+    "theme": "muscat-college",
+    "layout": "strip-4",
+    "caption": "Congratulations Almuatasam 2026",
+    "size": [
+      848,
+      2544
+    ],
+    "pixels": 1952,
+    "bbox": [
+      143,
+      2328,
+      704,
+      2349
+    ]
+  }
+]

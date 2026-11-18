@@ -36,9 +36,21 @@ export const squ: ThemeDef = {
     piecePool: [],
     pieceCount: [0, 0],
     captionTreatment: "name-band",
-    captionFontVar: "--font-cinzel",
-    captionFontSize: 40,
-    captionStyle: { gradient: ["#F7E39A", "#E8B923", "#A9790F"], letterSpacing: 1.5 },
+    captionFontVar: "--font-playpen-sans",
+    captionFontSize: 64,
+    // The caption goes in the empty band between "graduATEd" and the year
+    // (measured on the frames: its centre is 163px above the first photo and
+    // the band is 134px tall), in the same yellow as "graduATEd".
+    captionBox: {
+      aboveFirstPhoto: 163,
+      bandHalfHeight: 67,
+      clearance: 18,
+      maxWidth: 560,
+      fontVar: "--font-playpen-sans",
+      fontWeight: 600,
+      fontSize: 64,
+      color: "#FFC30B",
+    },
     outerFrame: { style: "none", width: 0 },
     overlayFrame: {
       dir: "/themes/squ",
@@ -50,8 +62,5 @@ export const squ: ThemeDef = {
       // 4x6 in at 300 dpi: both 900x2700 strips fitted into the halves.
       printSheet: { width: 1200, height: 1800 },
     },
-    // The empty band between the crest (ends about 238px into the bottom
-    // area) and the bottom edge of the strip.
-    captionBand: { top: 255, height: 90 },
   },
 };

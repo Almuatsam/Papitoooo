@@ -267,5 +267,29 @@ export interface ThemeDef {
      * caption bitmap fills the whole band.
      */
     captionBand?: { top: number; height: number };
+    /**
+     * Places the caption in a slot of the frame above the photos (SQU's empty
+     * band between the "graduATEd" lettering and the year) instead of in the
+     * bottom band. One flat colour, one line, never wrapped. When set, it
+     * replaces `captionBand` / `captionInsetLeft` and the "name-band" look.
+     * Unset (every other theme) = the caption is placed as before.
+     */
+    captionBox?: {
+      /** Vertical centre of the slot = top of the first photo minus this. */
+      aboveFirstPhoto: number;
+      /** Half the height of the free band around that centre. */
+      bandHalfHeight: number;
+      /** Space kept clear above and below the text inside the band. */
+      clearance: number;
+      /** Widest the text may be; it is centred on the middle of the photo area. */
+      maxWidth: number;
+      /** CSS custom property holding the font-family list. */
+      fontVar: string;
+      fontWeight: number;
+      /** Starting size in px; shrinks to fit the width and the band. */
+      fontSize: number;
+      /** Flat text colour. */
+      color: string;
+    };
   };
 }

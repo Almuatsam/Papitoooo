@@ -17,6 +17,7 @@ import { renderPiece, seedFrom, mulberry32 } from "@/lib/decor/strip-pieces";
 import { addStickers } from "@/lib/decor/add-stickers";
 import { renderTemplateStrip } from "@/lib/template-renderer";
 import { resolvePads } from "@/lib/layouts/pads";
+import { captionBoxGeometry, renderCaptionBoxBitmap } from "@/lib/decor/caption-box";
 import { jitterPiece, selectDecorPieces } from "@/lib/decor/decoration-generator";
 import type { FilterId, Frame, Lang, LayoutId, StickerInstance, StripThemeId } from "@/types";
 
@@ -632,7 +633,22 @@ export async function renderStrip(input: RenderStripInput): Promise<string> {
         const locale = lang === "ar" ? "ar" : undefined;
         parts.push(new Date().toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }));
       }
-      if (parts.length > 0 || hasOwnFixedLayout) {
+      const captionBox = strip.captionBox;
+      if (captionBox && parts.length > 0) {
+        // A theme with a caption slot in its frame (SQU) draws there and
+        // nowhere else, so nothing is placed in the bottom band.
+        const label = parts.join("   ·   ");
+        const geometry = captionBoxGeometry(strip, captionBox, canvasW, boxes[0]);
+        await ensureCaptionFont(captionBox.fontVar, label, captionBox.fontWeight);
+        fCanvas.add(
+          new FabricImage(renderCaptionBoxBitmap(geometry, captionBox, label, lang), {
+            left: geometry.left,
+            top: geometry.top,
+            selectable: false,
+            evented: false,
+          }),
+        );
+      } else if (!captionBox && (parts.length > 0 || hasOwnFixedLayout)) {
         const label = parts.join("   ·   ");
         // captionBand = a slot inside the bottom band (Graduation's name
         // band between the GRADUATION letters and the year); otherwise the

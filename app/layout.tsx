@@ -13,6 +13,7 @@ import {
   Bebas_Neue,
   Montserrat,
   Cinzel,
+  Playpen_Sans,
 } from "next/font/google";
 import "./globals.css";
 
@@ -79,6 +80,10 @@ const montserrat = Montserrat({
 // Serif that matches the Muscat College frame's "2026" (name-band caption).
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", display: "swap" });
 
+// Rounded handwritten marker face that matches the SQU frame's "graduATEd"
+// (caption slot, see strip.captionBox).
+const playpenSans = Playpen_Sans({ subsets: ["latin"], weight: "600", variable: "--font-playpen-sans", display: "swap" });
+
 const fontVars = [
   archivo.variable,
   archivoBlack.variable,
@@ -93,6 +98,7 @@ const fontVars = [
   bebasNeue.variable,
   montserrat.variable,
   cinzel.variable,
+  playpenSans.variable,
 ].join(" ");
 
 export const metadata: Metadata = {

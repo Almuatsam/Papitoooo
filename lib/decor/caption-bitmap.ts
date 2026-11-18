@@ -9,16 +9,16 @@ import type { Lang } from "@/types";
  * Only the "name-band" treatment needs it: other treatments' fonts are
  * already in use by the page.
  */
-export async function ensureCaptionFont(fontVar: string, text: string): Promise<void> {
+export async function ensureCaptionFont(fontVar: string, text: string, weight = 400): Promise<void> {
   try {
-    await document.fonts.load(`400 40px ${nameBandFamily(fontVar)}`, text);
+    await document.fonts.load(`${weight} 40px ${nameBandFamily(fontVar)}`, text);
   } catch {
     // font unavailable: the canvas falls back to the next family in the list
   }
 }
 
 /** The theme's font first, then Cairo, so names typed in Arabic still find glyphs the pixel face lacks. */
-function nameBandFamily(fontVar: string): string {
+export function nameBandFamily(fontVar: string): string {
   return [readCssVar(fontVar), readCssVar("--font-cairo")].filter(Boolean).join(", ") || "sans-serif";
 }
 
