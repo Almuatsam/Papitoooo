@@ -132,7 +132,7 @@ export const FILTERS: FilterDef[] = [
   {
     id: "soft",
     label: "Soft",
-    css: "contrast(0.9) brightness(1.09) saturate(0.94) blur(0.4px)",
+    css: "contrast(0.9) brightness(1.09) saturate(0.94)",
   },
   { id: "contrast", label: "High contrast", css: "contrast(1.42) saturate(1.16)" },
   colorOverlayFilter("blue", "Blue", "#2d77ed", 0.3),
