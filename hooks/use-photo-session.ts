@@ -1,28 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { capturePhotoFromVideo } from "@/lib/camera-utils";
-import {
-  COUNTDOWN_SECONDS,
-  FLASH_MS,
-  REVIEW_MS,
-} from "@/lib/constants";
+import { capturePhotoFromVideo, waitForFreshFrame, type CameraFacing } from "@/lib/camera-utils";
+import { COUNTDOWN_SECONDS, FRESH_FRAME_TIMEOUT_MS, REVIEW_MS } from "@/lib/constants";
+import { runFlashSequence } from "@/lib/flash-sequence";
+import type { TorchControl } from "@/lib/torch";
 import type { Frame } from "@/types";
 
 export type SessionPhase = "idle" | "countdown" | "flash" | "review" | "done";
-
-/** Delay between the flash starting and the frame being grabbed. */
-const FLASH_CAPTURE_DELAY = 110;
+export type FlashMode = "auto" | "off";
+/** "hold" = screen fully white; "fade" = fading out; null = no screen flash. */
+export type FlashStage = "hold" | "fade" | null;
 
 interface UsePhotoSessionInput {
   videoRef: React.RefObject<HTMLVideoElement>;
   /** How many shots this session takes — derived from the chosen layout's photoCount. */
   shotCount: number;
   onComplete: (frames: Frame[]) => void;
+  flashMode: FlashMode;
+  /** Active camera. Only the front camera is mirrored in the captured frame. */
+  facing: CameraFacing;
+  /** Torch for the active track, if it has one. */
+  torch: TorchControl | null;
 }
 
 interface UsePhotoSessionResult {
   phase: SessionPhase;
+  flashStage: FlashStage;
   /** 0-based index of the shot currently being taken. */
   shotIndex: number;
   /** Current countdown number (COUNTDOWN_SECONDS .. 1), only meaningful in "countdown". */
@@ -36,98 +40,136 @@ interface UsePhotoSessionResult {
   cancel: () => void;
 }
 
+function abortableSleep(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
 export function usePhotoSession({
   videoRef,
   shotCount,
   onComplete,
+  flashMode,
+  facing,
+  torch,
 }: UsePhotoSessionInput): UsePhotoSessionResult {
   const [phase, setPhase] = useState<SessionPhase>("idle");
+  const [flashStage, setFlashStage] = useState<FlashStage>(null);
   const [shotIndex, setShotIndex] = useState(0);
   const [count, setCount] = useState(COUNTDOWN_SECONDS);
   const [frames, setFrames] = useState<Frame[]>([]);
   const [lastFrame, setLastFrame] = useState<Frame | null>(null);
 
   const framesRef = useRef<Frame[]>([]);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
+  // Read at shot time, so a flash setting changed mid-session still applies.
+  const optionsRef = useRef({ flashMode, facing, torch });
+  optionsRef.current = { flashMode, facing, torch };
 
-  const clearTimers = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  }, []);
-
-  const after = useCallback((ms: number, fn: () => void) => {
-    const id = setTimeout(fn, ms);
-    timers.current.push(id);
-  }, []);
-
-  const cancel = useCallback(() => {
-    clearTimers();
+  const reset = useCallback(() => {
     framesRef.current = [];
     setFrames([]);
     setLastFrame(null);
     setShotIndex(0);
     setCount(COUNTDOWN_SECONDS);
+    setFlashStage(null);
+  }, []);
+
+  const cancel = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    reset();
     setPhase("idle");
-  }, [clearTimers]);
+  }, [reset]);
 
-  const runShot = useCallback(
-    (index: number) => {
-      setShotIndex(index);
-      setPhase("countdown");
-      setCount(COUNTDOWN_SECONDS);
+  const takeShot = useCallback(
+    async (signal: AbortSignal): Promise<Frame | null> => {
+      const { flashMode: mode, facing: side, torch: light } = optionsRef.current;
+      const flashOn = mode === "auto";
+      const sleep = (ms: number) => abortableSleep(ms, signal);
+      return runFlashSequence({
+        // The front camera has nothing else to light the face, so the screen
+        // always flashes; a back camera relies on the torch.
+        screenFlash: flashOn && side === "user",
+        torch: flashOn ? light : null,
+        showScreen: () => setFlashStage("hold"),
+        fadeScreen: () => setFlashStage("fade"),
+        hideScreen: () => setFlashStage(null),
+        waitForFreshFrame: async () => {
+          const video = videoRef.current;
+          if (video) await waitForFreshFrame(video, FRESH_FRAME_TIMEOUT_MS);
+        },
+        capture: () => {
+          const video = videoRef.current;
+          return video ? capturePhotoFromVideo(video, { flipHorizontal: side === "user" }) : null;
+        },
+        sleep,
+      });
+    },
+    [videoRef],
+  );
 
-      const tick = (remaining: number) => {
-        if (remaining > 0) {
+  const run = useCallback(
+    async (signal: AbortSignal) => {
+      for (let index = 0; index < shotCount; index++) {
+        setShotIndex(index);
+        setPhase("countdown");
+        for (let remaining = COUNTDOWN_SECONDS; remaining > 0; remaining--) {
           setCount(remaining);
-          after(1000, () => tick(remaining - 1));
-          return;
+          await abortableSleep(1000, signal);
         }
 
-        // Fire the flash, then grab the frame a beat later so the capture
-        // lands while the screen is lit.
         setPhase("flash");
-        after(FLASH_CAPTURE_DELAY, () => {
-          const video = videoRef.current;
-          const frame = video ? capturePhotoFromVideo(video) : null;
-          if (frame) {
-            framesRef.current = [...framesRef.current, frame];
-            setFrames(framesRef.current);
-            setLastFrame(frame);
-          }
+        const frame = await takeShot(signal);
+        if (!frame) break;
+        framesRef.current = [...framesRef.current, frame];
+        setFrames(framesRef.current);
+        setLastFrame(frame);
 
-          after(FLASH_MS - FLASH_CAPTURE_DELAY, () => {
-            setPhase("review");
-            after(REVIEW_MS, () => {
-              if (index + 1 < shotCount && framesRef.current.length >= index + 1) {
-                runShot(index + 1);
-              } else {
-                setPhase("done");
-                onCompleteRef.current(framesRef.current);
-              }
-            });
-          });
-        });
-      };
-
-      after(1000, () => tick(COUNTDOWN_SECONDS - 1));
+        setPhase("review");
+        await abortableSleep(REVIEW_MS, signal);
+      }
+      setPhase("done");
+      onCompleteRef.current(framesRef.current);
     },
-    [after, videoRef, shotCount],
+    [shotCount, takeShot],
   );
 
   const start = useCallback(() => {
-    clearTimers();
-    framesRef.current = [];
-    setFrames([]);
-    setLastFrame(null);
-    runShot(0);
-  }, [clearTimers, runShot]);
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    reset();
+    run(controller.signal).catch((err: unknown) => {
+      // Cancel is expected; anything else is a real failure worth surfacing.
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      // eslint-disable-next-line no-console
+      console.error("[photo-session] session failed", err);
+      setFlashStage(null);
+      setPhase("idle");
+    });
+  }, [reset, run]);
 
-  useEffect(() => clearTimers, [clearTimers]);
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   return {
     phase,
+    flashStage,
     shotIndex,
     count,
     frames,

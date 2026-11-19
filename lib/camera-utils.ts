@@ -146,3 +146,48 @@ export function capturePhotoFromVideo(
 export function stopMediaStream(stream: MediaStream | null): void {
   stream?.getTracks().forEach((track) => track.stop());
 }
+
+/**
+ * Resolves once the video has presented a frame newer than this call, so a
+ * grab right after it is lit by whatever just happened (the flash).
+ * Uses requestVideoFrameCallback when present, else two animation frames;
+ * a timeout keeps a paused or hidden video from stalling the session.
+ */
+export function waitForFreshFrame(video: HTMLVideoElement, timeoutMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(done, timeoutMs);
+    if (typeof video.requestVideoFrameCallback === "function") {
+      video.requestVideoFrameCallback(() => done());
+    } else {
+      requestAnimationFrame(() => requestAnimationFrame(done));
+    }
+  });
+}
+
+/** Which way the active camera faces. Only the front ("user") camera is mirrored. */
+export type CameraFacing = "user" | "environment";
+
+/** The facing the browser actually gave us, falling back to what was requested. */
+export function resolveFacing(track: MediaStreamTrack | undefined, requested: CameraFacing): CameraFacing {
+  const reported = track?.getSettings?.().facingMode;
+  if (reported === "user" || reported === "environment") return reported;
+  return requested;
+}
+
+/** True when more than one camera is available (so a front/back switch makes sense). */
+export async function hasMultipleCameras(): Promise<boolean> {
+  try {
+    if (!navigator.mediaDevices?.enumerateDevices) return false;
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.filter((d) => d.kind === "videoinput").length > 1;
+  } catch {
+    return false;
+  }
+}

@@ -20,6 +20,18 @@ export const en = {
     cameraOff: "Camera off",
     stop: "Stop",
     filter: "Filter",
+    flash: "Flash",
+    flashAuto: "Auto",
+    flashOff: "Off",
+    switchCamera: "Switch camera",
+  },
+  cameraFallback: {
+    title: "Use your phone's camera app",
+    body: "Take each photo with your phone's own camera app, which has its own flash. They get the same filters and frames.",
+    take: "Take photo",
+    of: "of",
+    working: "Preparing your photo...",
+    failed: "That photo could not be read. Try another one.",
   },
   cameraError: {
     title: "Camera unavailable",
@@ -30,6 +42,7 @@ export const en = {
     insecure: "The camera only works over HTTPS (or on localhost).",
     unsupported: "This browser does not support camera access.",
     unknown: "Something went wrong starting the camera.",
+    openInBrowser: "Opened this link inside another app (Instagram, WhatsApp, TikTok...)? Open it in your browser, such as Safari or Chrome, to use the camera.",
   },
   result: {
     heading: "Your strip",
